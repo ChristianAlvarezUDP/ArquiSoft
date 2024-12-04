@@ -50,6 +50,7 @@ class SOABus:
 
 if __name__ == '__main__':
     bus = SOABus()
+
     threading.Thread(target=bus.start).start()
 
     bus.register_service("service1", ('127.0.0.1', 6000))
