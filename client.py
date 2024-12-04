@@ -31,14 +31,44 @@ def login(username, password):
     return response['status'] == "correct"
 
 
+def listar_auditorias():
+    client_request('127.0.0.1', 5000, 'login', json.dumps(data))
+    return "hola"
+
+
+def logout():
+    return "break"
+
+
 if __name__ == '__main__':
+    locked_in = True
+
+    comandos = {
+        "listar auditorias": lambda x: listar_auditorias(),
+        "logout": lambda x: logout()
+    }
+
     while True:
         print("Realizar login")
         username = input("Usuario > ")
         password = input("Contraseña > ")
 
         if login(username, password):
+            locked_in = True
             break
         else:
             print("Credenciales incorrectas")
  
+    while locked_in:
+        for comando in comandos.keys():
+            print(comando)
+
+        comando = input("Comando > ").lower()
+
+        if comando not in comandos:
+            continue
+
+        x = comandos[comando](1)
+
+        if x == "break":
+            break
