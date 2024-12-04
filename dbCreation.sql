@@ -2,11 +2,19 @@
 
 PRAGMA foreign_keys = ON;
 
+-- Table grupo_usuario
+DROP TABLE IF EXISTS grupo_usuario;
+CREATE TABLE IF NOT EXISTS grupo_usuario (
+  id INTEGER PRIMARY KEY,
+  nombre TEXT NOT NULL);
+
 -- Table usuario
 DROP TABLE IF EXISTS usuario;
 CREATE TABLE IF NOT EXISTS usuario (
   username TEXT PRIMARY KEY,
-  password TEXT NOT NULL);
+  password TEXT NOT NULL,
+  id_grupo INTEGER NOT NULL,
+  FOREIGN KEY (id_grupo) REFERENCES grupo_usuario (id));
 
 -- Table auditor
 DROP TABLE IF EXISTS auditor;
@@ -75,3 +83,12 @@ CREATE TABLE IF NOT EXISTS respuesta_auditoria (
   PRIMARY KEY (id_auditoria, id_campo_auditoria),
   FOREIGN KEY (id_auditoria) REFERENCES auditoria (id),
   FOREIGN KEY (id_campo_auditoria) REFERENCES campo_auditoria (id));
+
+
+INSERT INTO grupo_usuario VALUES(1, 'Auditoria');
+INSERT INTO grupo_usuario VALUES(2, 'Digitador');
+INSERT INTO grupo_usuario VALUES(3, 'Administrador');
+
+INSERT INTO usuario VALUES('auditor', 'test', 1);
+INSERT INTO usuario VALUES('digitador', 'test', 2);
+INSERT INTO usuario VALUES('administrador', 'test', 3);
