@@ -7,6 +7,7 @@ class SOABus:
         self.port = port
         self.services = {} 
         self.lock = threading.Lock()
+        self.stop_flag = threading.Event()
 
     def register_service(self, service_name, address):
         with self.lock:
@@ -43,13 +44,34 @@ class SOABus:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             server_socket.bind((self.host, self.port))
             server_socket.listen()
-            while True:
-                client_socket, _ = server_socket.accept()
-                threading.Thread(target=self.handle_client, args=(client_socket,)).start()
+            while not self.stop_flag.is_set():
+                server_socket.settimeout(1)
+                try:
+                    client_socket, _ = server_socket.accept()
+                    threading.Thread(target=self.handle_client, args=(client_socket,)).start()
+                except socket.timeout:
+                    continue
+    
+    def stop(self):
+        print("Stopping SOA Bus...")
+        self.stop_flag.set()
 
+
+threads = []
 
 if __name__ == '__main__':
     bus = SOABus()
 
-    threading.Thread(target=bus.start).start()
-    bus.register_service("createForm_service", ('127.0.0.1', 6002))
+    threads.append(threading.Thread(target=bus.start))
+
+    threads[0].start()
+
+    bus.register_service("db", ('127.0.0.1', 6000))
+    bus.register_service("login", ('127.0.0.1', 6001))
+    bus.register_service("gestionDeFormularios", ('127.0.0.1', 6002))
+
+    while True:
+        command = input("Enter 'stop' to terminate the bus: ").strip().lower()
+        if command == 'stop':
+            bus.stop()
+            break

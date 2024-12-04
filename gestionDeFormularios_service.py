@@ -17,7 +17,7 @@ def service_worker(service_name, host, port):
 
 def handle_service_request(service_name, data):
     """
-    Handle the service request for adding questions based on received data.
+    Handle the service request based on the received operation.
     """
     # Initialize an empty list for questions
     questions = []
@@ -28,12 +28,29 @@ def handle_service_request(service_name, data):
     except ValueError:
         return f"{service_name} error: Invalid request format"
 
+    # Get the operation from the request (e.g., 'crear')
+    operacion = request.get('operacion')
+
+    if operacion == "crear":
+        return handle_create_operation(request)
+    elif operacion == "otro":  # Placeholder for another operation
+        return handle_other_operation(request)
+    else:
+        return f"{service_name} error: Unsupported operation '{operacion}'"
+
+#Crear formularios
+def handle_create_operation(request):
+    """
+    Handle the 'crear' operation to insert questions into the database.
+    """
+    questions = []
+
     # Ask for the number of questions
     if 'num_questions' in request:
         try:
             num_questions = int(request['num_questions'])
         except ValueError:
-            return f"{service_name} error: Invalid number of questions"
+            return f"crear error: Invalid number of questions"
 
         # Ask for the text of each question
         for i in range(1, num_questions + 1):
@@ -43,13 +60,13 @@ def handle_service_request(service_name, data):
                 # Insert the question into the database
                 insert_question_into_db(question_text)
             else:
-                return f"{service_name} error: Missing question text for question {i}"
+                return f"crear error: Missing question text for question {i}"
 
         # Return the list of questions
-        return f"{service_name} success: {questions}"
+        return f"crear success: {questions}"
     
     else:
-        return f"{service_name} error: Number of questions not provided"
+        return f"crear error: Number of questions not provided"
 
 def insert_question_into_db(question_text):
     """
@@ -60,11 +77,12 @@ def insert_question_into_db(question_text):
         # Connect to SQLite database (arqui.db)
         conn = sqlite3.connect('sqlite/arqui.db')
         cursor = conn.cursor()
-        #Create Group
+
+        # Create a group first (if needed)
         cursor.execute("INSERT INTO grupo_campos (nombre, responsable) VALUES (?, ?)", ("Grupo test", True))
 
-        # Insert the question into the table
-        cursor.execute("INSERT INTO campo_auditoria (titulo, id_grupo) VALUES (?, ?)", (question_text, "1"))
+        # Insert the question into the 'campo_auditoria' table
+        cursor.execute("INSERT INTO campo_auditoria (titulo, id_grupo) VALUES (?, ?)", (question_text, 1))  # Assuming 'id_grupo' = 1
         
         # Commit the transaction and close the connection
         conn.commit()
@@ -88,8 +106,19 @@ def parse_request(data):
             pass
     return request
 
+
+
+#Otras weas
+def handle_other_operation(request):
+    """
+    Placeholder for handling other types of operations (e.g., 'actualizar', 'eliminar', etc.).
+    """
+    # For example, handle some other operation (this can be expanded based on your requirements)
+    return "otro operation executed"
+
+
 if __name__ == '__main__':
-    # Start the service threads for each service
+    # Start the service thread for 'createForm' service
     stop_flag = threading.Event()
     threading.Thread(target=service_worker, args=("createForm", '127.0.0.1', 6002)).start()
 
@@ -98,6 +127,3 @@ if __name__ == '__main__':
         if command == 'stop':
             stop_flag.set()
             break
-
-    
-

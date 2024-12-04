@@ -47,25 +47,8 @@ if __name__ == '__main__':
         "What is your age?",
         "Where do you live?"
     ]
-    
-    data = {
-        "comando": 'login',
-        "data": {
-            "user": 'usuario',
-            "password": 'test'
-        }
-    }
-
-    while True:
-        print("Realizar login")
-        username = input("Usuario > ")
-        password = input("Contraseña > ")
-
-        if login(username, password):
-            break
-        else:
-            print("Credenciales incorrectas")
-
-    client_request('127.0.0.1', 5000, 'createForm_service', 3, questions)
+  
+    operacion = "crear"
+    client_request('127.0.0.1', 5000, 'createForm', 3, questions, operacion)
     
  
