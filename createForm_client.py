@@ -30,7 +30,7 @@ def login(username, password):
         }
     }
 
-    response = client_request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
+    response = client_request('127.0.0.1', 5000, 'login', json.dumps(data))
 
     response = json.loads(response)
 
@@ -40,17 +40,6 @@ def login(username, password):
     return response['status'] == "correct"
 
 
-def listar_auditorias():
-    client_request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
-    return "hola"
-
-
-def logout():
-    return "break"
-
-def agregar_formulario():
-    client_request('127.0.0.1', 5000, 'createForm_service', 3, questions)
-
 if __name__ == '__main__':
 
     questions = [
@@ -58,29 +47,8 @@ if __name__ == '__main__':
         "What is your age?",
         "Where do you live?"
     ]
+  
+    operacion = "crear"
+    client_request('127.0.0.1', 5000, 'createForm', 3, questions, operacion)
     
  
-    locked_in = True
-
-    comandos = {
-        "listar auditorias": lambda x: listar_auditorias(),
-        "logout": lambda x: logout(),
-        "agregar formulario": lambda x: agregar_formulario()
-    }
-
-
- 
-    while locked_in:
-        for comando in comandos.keys():
-            print(comando)
-
-        comando = input("Comando > ").lower()
-
-        if comando not in comandos:
-            continue
-
-        x = comandos[comando](1)
-
-        if x == "break":
-            break
-
