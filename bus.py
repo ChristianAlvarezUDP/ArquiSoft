@@ -52,6 +52,4 @@ if __name__ == '__main__':
     bus = SOABus()
 
     threading.Thread(target=bus.start).start()
-
-    bus.register_service("service1", ('127.0.0.1', 6000))
-    bus.register_service("service2", ('127.0.0.1', 6001))
+    bus.register_service("createForm_service", ('127.0.0.1', 6002))
