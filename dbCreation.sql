@@ -2,10 +2,10 @@
 
 PRAGMA foreign_keys = ON;
 
--- Table app_user
-DROP TABLE IF EXISTS app_user;
-CREATE TABLE IF NOT EXISTS app_user (
-  user_name TEXT PRIMARY KEY,
+-- Table usuario
+DROP TABLE IF EXISTS usuario;
+CREATE TABLE IF NOT EXISTS usuario (
+  username TEXT PRIMARY KEY,
   password TEXT NOT NULL);
 
 -- Table auditor
