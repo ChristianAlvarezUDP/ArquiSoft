@@ -49,21 +49,15 @@ def service_worker(service_name, host, port):
 
 def login(username, password):
     conn = sqlite3.connect("sqlite/arqui.db")
-
     cursor = conn.cursor()
 
-    cursor.execute(
-        f'''
+    cursor.execute(f'''
         SELECT * FROM usuario
         WHERE username = '{username}'
         AND password = '{password}';
-        '''
-    )
+        ''')
 
     result = cursor.fetchall()
-
-    print(result)
-
     return len(result) > 0
 
 

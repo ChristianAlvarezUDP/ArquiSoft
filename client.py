@@ -32,14 +32,6 @@ def login(username, password):
 
 
 if __name__ == '__main__':
-    data = {
-        "comando": 'login',
-        "data": {
-            "user": 'usuario',
-            "password": 'test'
-        }
-    }
-
     while True:
         print("Realizar login")
         username = input("Usuario > ")

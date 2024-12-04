@@ -15,9 +15,7 @@ def service_worker(service_name, host, port, stop_flag):
                 data = client_socket.recv(1024).decode('utf-8')
 
                 data = json.loads(data)
-
                 print(data)
-
                 response = ""
 
                 if data['comando'] == 'login':
