@@ -21,7 +21,7 @@ def login(username, password):
         }
     }
 
-    response = client_request('127.0.0.1', 5000, 'login', json.dumps(data))
+    response = client_request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
 
     response = json.loads(response)
 
@@ -32,7 +32,7 @@ def login(username, password):
 
 
 def listar_auditorias():
-    client_request('127.0.0.1', 5000, 'login', json.dumps(data))
+    client_request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
     return "hola"
 
 

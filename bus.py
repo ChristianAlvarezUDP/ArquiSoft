@@ -1,5 +1,7 @@
 import socket
 import threading
+import sys
+import json
 
 class SOABus:
     def __init__(self, host='127.0.0.1', port=5000):
@@ -57,20 +59,14 @@ class SOABus:
         self.stop_flag.set()
 
 
-threads = []
-
 if __name__ == '__main__':
-    bus = SOABus()
+    bus = SOABus(sys.argv[2], int(sys.argv[3]))
 
-    threads.append(threading.Thread(target=bus.start))
+    t = threading.Thread(target=bus.start)
 
-    threads[0].start()
+    t.start()
 
-    bus.register_service("db", ('127.0.0.1', 6000))
-    bus.register_service("login", ('127.0.0.1', 6001))
-
-    while True:
-        command = input("Enter 'stop' to terminate the bus: ").strip().lower()
-        if command == 'stop':
-            bus.stop()
-            break
+    port = 6000
+    for service in json.loads(sys.argv[1]):
+        bus.register_service(service, ('127.0.0.1', port))
+        port += 1

@@ -1,3 +1,4 @@
+import sys
 import socket
 import threading
 import sqlite3
@@ -63,4 +64,4 @@ def login(username, password):
 
 
 if __name__ == '__main__':
-    threading.Thread(target=service_worker, args=("auditorias_service", '127.0.0.1', 6000)).start()
+    threading.Thread(target=service_worker, args=(sys.argv[0].split('/')[-1], '127.0.0.1', int(sys.argv[1]))).start()
