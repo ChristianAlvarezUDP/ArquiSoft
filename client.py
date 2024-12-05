@@ -1,24 +1,15 @@
 import socket
 import json
 
-def client_request(bus_host, bus_port, service_name, num_questions, questions):
+def request(bus_ip, bus_port, service_name, message):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect((bus_host, bus_port))
-        
-        # Prepare the request in the format 'service_name:num_questions:{num_questions};question_1:{question_text};question_2:{question_text};...'
-        request = f"{service_name}:num_questions:{num_questions}"
-        
-        # Add each question to the request
-        for i, question in enumerate(questions, 1):
-            request += f";question_{i}:{question}"
-        
-        # Send the request
-        client_socket.sendall(request.encode('utf-8'))  
-        
-        # Receive and print the response
+        client_socket.connect((bus_ip, bus_port))
+        request = f"{service_name}:{message}"
+        client_socket.sendall(request.encode('utf-8'))
         response = client_socket.recv(1024)
         print(f"Response: {response.decode('utf-8')}")
-    return response.decode('utf-8')
+
+        return response.decode('utf-8')
 
 
 def login(username, password):
@@ -30,7 +21,7 @@ def login(username, password):
         }
     }
 
-    response = client_request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
 
     response = json.loads(response)
 
@@ -41,7 +32,7 @@ def login(username, password):
 
 
 def listar_auditorias():
-    client_request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
+    request('127.0.0.1', 5000, 'login_service.py', json.dumps(data))
     return "hola"
 
 
@@ -49,7 +40,10 @@ def logout():
     return "break"
 
 def agregar_formulario():
-    client_request('127.0.0.1', 5000, 'createForm_service.py', 3, questions)
+    data = {
+    }
+
+    request('127.0.0.1', 5000, 'createForm_service.py', json.dumps(data))
 
 if __name__ == '__main__':
     locked_in = True
