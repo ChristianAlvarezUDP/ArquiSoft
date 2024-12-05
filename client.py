@@ -92,7 +92,22 @@ def responder_auditoria():
 
     form = form_data["forms"][form_id]
 
-    print(form)
+    respuestas = []
+
+    for pregunta in form["preguntas"]:
+        print(pregunta["titulo"])
+        respuesta = input(" > ")
+
+        respuestas.append({"id_pregunta:": pregunta["id"], "respuesta": respuesta})
+
+    data = {
+        "comando": "agregar",
+        "id_formulario": form_id,
+        "respuestas": respuestas,
+    }
+
+    response = request('127.0.0.1', 5000, 'auditorias_service.py', json.dumps(data))
+    print()
 
 
 if __name__ == '__main__':
