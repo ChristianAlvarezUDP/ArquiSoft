@@ -47,8 +47,7 @@ CREATE TABLE IF NOT EXISTS tipo_auditoria (
 DROP TABLE IF EXISTS grupo_campos;
 CREATE TABLE IF NOT EXISTS grupo_campos (
   id INTEGER PRIMARY KEY,
-  nombre TEXT NOT NULL,
-  responsable INTEGER DEFAULT 0);
+  nombre TEXT NOT NULL);
 
 -- Table auditoria
 DROP TABLE IF EXISTS auditoria;

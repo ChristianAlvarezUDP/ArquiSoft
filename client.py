@@ -49,17 +49,9 @@ def logout():
     return "break"
 
 def agregar_formulario():
-    client_request('127.0.0.1', 5000, 'createForm_service', 3, questions)
+    client_request('127.0.0.1', 5000, 'createForm_service.py', 3, questions)
 
 if __name__ == '__main__':
-
-    questions = [
-        "What is your name?",
-        "What is your age?",
-        "Where do you live?"
-    ]
-    
- 
     locked_in = True
 
     comandos = {
@@ -68,8 +60,6 @@ if __name__ == '__main__':
         "agregar formulario": lambda x: agregar_formulario()
     }
 
-
- 
     while locked_in:
         for comando in comandos.keys():
             print(comando)
