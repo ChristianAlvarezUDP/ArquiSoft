@@ -89,9 +89,7 @@ def responder_auditoria():
         print(f"{form["id"]}: {form["nombre"]}")
 
     form_id = input(" > ")
-
     form = form_data["forms"][form_id]
-
     respuestas = []
 
     for pregunta in form["preguntas"]:
