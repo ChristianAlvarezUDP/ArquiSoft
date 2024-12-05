@@ -7,7 +7,6 @@ def request(bus_ip, bus_port, service_name, message):
         request = f"{service_name}:{message}"
         client_socket.sendall(request.encode('utf-8'))
         response = client_socket.recv(1024)
-        print(f"Response: {response.decode('utf-8')}")
 
         return response.decode('utf-8')
 
@@ -22,7 +21,6 @@ def login(username, password):
     }
 
     response = request('127.0.0.1', 5000, 'auth_service.py', json.dumps(data))
-
     response = json.loads(response)
 
     if 'status' not in response:
@@ -71,16 +69,57 @@ def crear_formulario():
     agregar_formulario(nombre, preguntas)
 
 
+def responder_auditoria():
+    print('Responder auditoria')
+
+    print("Elija formulario (numero):")
+
+    data = {
+        'comando': 'get_all'
+    }
+
+    response = request('127.0.0.1', 5000, 'forms_service.py', json.dumps(data))
+
+    form_data = json.loads(response)
+
+    print(form_data)
+
+    for form_id in form_data["forms"].keys():
+        form = form_data["forms"][form_id]
+        print(f"{form["id"]}: {form["nombre"]}")
+
+    form_id = input(" > ")
+
+    form = form_data["forms"][form_id]
+
+    print(form)
+
+
 if __name__ == '__main__':
     locked_in = True
 
     comandos = {
         "listar auditorias": lambda x: listar_auditorias(),
+        "agregar formulario": lambda x: crear_formulario(),
+        "responder auditoria": lambda x: responder_auditoria(),
         "logout": lambda x: logout(),
-        "agregar formulario": lambda x: crear_formulario()
     }
 
+    while True:
+        print("Login")
+        username = input("Usuario > ")
+        password = input("Contraseña > ")
+
+        if login(username, password):
+            locked_in = True
+            break
+        else:
+            print("Credenciales incorrectas")
+
+
     while locked_in:
+        print("Seleccione comando:")
+
         for comando in comandos.keys():
             print(comando)
 

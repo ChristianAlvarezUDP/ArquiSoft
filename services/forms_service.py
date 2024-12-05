@@ -16,10 +16,20 @@ def service_worker(service_name, host, port):
             
             data = json.loads(data)
 
+            response = ""
+
             if data["comando"] == "agregar":
                 insert_form(data["nombre"], data["preguntas"])
 
-            response = ""
+            if data["comando"] == "get_all":
+                form_data = get_all_forms()
+
+                data = {
+                    "status": "correct",
+                    "forms": form_data
+                }
+
+                response = json.dumps(data)
 
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
@@ -47,26 +57,43 @@ def insert_form(nombre, preguntas):
         print(f"Error inserting question into database: {e}")
 
 
-def get_form(nombre, preguntas):
-    """
-    Insert the question into the SQLite database (arqui.db).
-    The questions will be inserted into the 'campo_auditoria.titulo' table.
-    """
+def get_all_forms():
     try:
         conn = sqlite3.connect('sqlite/arqui.db')
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO grupo_campos (nombre) VALUES (?)", (nombre,))
-        group_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM grupo_campos")
+        forms = cursor.fetchall()
 
-        for pregunta in preguntas:
-            cursor.execute("INSERT INTO campo_auditoria (titulo, id_grupo) VALUES (?, ?)", (pregunta, group_id))
-        
-        conn.commit()
+        form_data = {}
+
+        for form in forms:
+            cursor.execute("SELECT * FROM campo_auditoria WHERE id_grupo = (?)", (form[0],))
+            questions = [{"id": question[0], "titulo": question[2]} for question in cursor.fetchall()]
+
+            form_data[form[0]] = {"id": form[0], "nombre": form[1], "preguntas": questions}
+
         conn.close()
-        print(f"Form inserted: {nombre}")
+
+        return form_data
     except sqlite3.Error as e:
-        print(f"Error inserting question into database: {e}")
+        print(f"Error getting form: {e}")
+        return {}
+
+
+def get_form(form_id):
+    try:
+        conn = sqlite3.connect('sqlite/arqui.db')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM grupo_campos WHERE id = (?)", (form_id))
+        result = cursor.fetchall()
+
+        print(result[0])
+
+        conn.close()
+    except sqlite3.Error as e:
+        print(f"Error getting form: {e}")
 
 
 if __name__ == '__main__':
