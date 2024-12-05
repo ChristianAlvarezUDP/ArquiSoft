@@ -42,11 +42,34 @@ def listar_auditorias():
 def logout():
     return "break"
 
-def agregar_formulario():
+def agregar_formulario(nombre, preguntas):
     data = {
+        'comando': 'agregar',
+        'nombre': nombre,
+        'preguntas': preguntas
     }
 
-    request('127.0.0.1', 5000, 'createForm_service.py', json.dumps(data))
+    request('127.0.0.1', 5000, 'forms_service.py', json.dumps(data))
+
+
+def crear_formulario():
+    print('Crear formulario')
+    print("Escriba el nombre del formulario")
+
+    nombre = input(" > ")
+
+    preguntas = []
+    while True:
+        print("Escriba pregunta o 'terminar'")
+        pregunta = input(" > ")
+
+        if pregunta == "terminar":
+            break
+
+        preguntas.append(pregunta)
+
+    agregar_formulario(nombre, preguntas)
+
 
 if __name__ == '__main__':
     locked_in = True
@@ -54,7 +77,7 @@ if __name__ == '__main__':
     comandos = {
         "listar auditorias": lambda x: listar_auditorias(),
         "logout": lambda x: logout(),
-        "agregar formulario": lambda x: agregar_formulario()
+        "agregar formulario": lambda x: crear_formulario()
     }
 
     while locked_in:
