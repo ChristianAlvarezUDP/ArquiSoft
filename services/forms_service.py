@@ -15,7 +15,6 @@ def service_worker(service_name, host, port):
             print(f"{service_name} received: {data}")
             
             data = json.loads(data)
-
             response = ""
 
             if data["comando"] == "agregar":
@@ -36,10 +35,6 @@ def service_worker(service_name, host, port):
 
 
 def insert_form(nombre, preguntas):
-    """
-    Insert the question into the SQLite database (arqui.db).
-    The questions will be inserted into the 'campo_auditoria.titulo' table.
-    """
     try:
         conn = sqlite3.connect('sqlite/arqui.db')
         cursor = conn.cursor()
