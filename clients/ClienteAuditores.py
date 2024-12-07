@@ -41,7 +41,7 @@ def login(username, password):
         "comando": "login",
         "username": username,
         "password": password,
-        "permisos": "Auditor"
+        "permisos": "auditor"
     }
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
@@ -156,7 +156,7 @@ def listar_buses_auditados():
     return response
 
 if __name__ == '__main__':
-    locked_in = True
+    locked_in = False
 
     comandos = {
         "listar auditorias": lambda x: listar_auditorias(),

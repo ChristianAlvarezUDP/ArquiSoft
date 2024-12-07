@@ -3,6 +3,31 @@ import json
 import os
 import os
 
+class Colores:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    
+def login(username, password):
+    data = {
+        "comando": "login",
+        "username": username,
+        "password": password,
+        "permisos": "digitador"
+    }
+
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+    return json.loads(response)
+
+def logout():
+    return "break"
+
 #TODO: Revisar direcciones de servicios, cambiar comandos
 
 def request(bus_ip, bus_port, service_name, message):
@@ -56,7 +81,7 @@ def retrieveCampos(id_grupo_campos):
         print ("No recibe respuesta")
     return response
     
-def retrieveAllAuditorias(id):
+def retrieveAllAuditorias():
     data = {
         "comando": 'retrieve',
     }
@@ -169,7 +194,7 @@ def editAuditoria():
         print(f"ID: {datos['id']}\n Marca Temporal: {datos['marca_temporal']}\n Fecha: {datos['fecha']}\n ID Grupo Campos: {datos['id_grupo_campos']}\n ID Bus: {datos['id_bus']}\n ID Tipo Auditoria: {datos['id_tipo_auditoria']}\n ID Auditor: {datos['id_auditor']}")
         print("Respuestas Formulario:")
         for respuesta in respuestas:
-            print(f"Pregunta: {preguntas[respuesta.enumerate()]}")
+            print(f"[{respuesta.enumerate()}] Pregunta: {preguntas[respuesta.enumerate()]}")
             print(f"Respuesta: {respuesta}")
         
         print("Seleccione el campo a editar:")
@@ -180,6 +205,8 @@ def editAuditoria():
         print("5. ID Tipo Auditoria")
         print("6. ID Auditor")
         print("7. Respuestas")
+        print("8. Enviar Cambios")
+        print("9. Salir")
 
         opcion = int(input(" > "))
 
@@ -188,23 +215,56 @@ def editAuditoria():
             response["body"]['marca_temporal'] = input(" > ")
         elif opcion == 2:
             print("Escriba nueva Fecha")
-            fecha = input(" > ")
+            response["body"]['fecha'] = input(" > ")
         elif opcion == 3:
             print("Escriba nuevo ID Grupo Campos")
-            id_grupo_campos = input(" > ")
+            response["body"]['id_grupo_campos'] = input(" > ")
         elif opcion == 4:
             print("Escriba nuevo ID Bus")
-            id_bus = input(" > ")
+            response["body"]['id_bus'] = input(" > ")
         elif opcion == 5:
             print("Escriba nuevo ID Tipo Auditoria")
-            id_tipo_auditoria = input(" > ")
+            response["body"]['id_tipo_auditoria'] = input(" > ")
         elif opcion == 6:
             print("Escriba nuevo ID Auditor")
-            id_auditor = input(" > ")
+            response["body"]['id_auditor'] = input(" > ")
         elif opcion == 7:
             print("Elija la respuesta a editar")
+            preguntaEditar = input(" > ")    
+            print("Escriba nueva respuesta")
+            preguntaEditada = input(" > ")
+            response["body"]["respuestas"][preguntaEditar] = preguntaEditada
+        elif opcion == 8:
+            response = request('127.0.0.1', 5000, 'serviceRetrieveCampos.py', json.dumps(response))
+            if response:
+                response = json.loads(response)
+            else:
+                print ("No recibe respuesta")
+                return "error"
+        elif opcion == 9:
+            return "break"
         else:
             print("Opción no válida")
+        
+def deleteAuditoria():
+    auditorias = retrieveAllAuditorias()
+    for auditoria in auditorias:
+        print(f'[{auditoria["id"]}]: {auditoria}' )
+    print("Escriba id de la auditoria a eliminar")
+    idAuditoria = input(" > ")
+    packet = {
+        "comando": 'delete',
+        "body": {
+            "id" : idAuditoria
+        }
+    }
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(packet))
+    if response:
+        response = json.loads(response)
+        return response
+    else:
+        print ("No recibe respuesta")
+        return "error"
 
 def login(username, password):
     data = {
@@ -219,46 +279,50 @@ def login(username, password):
 
 
 if __name__ == '__main__':
-    locked_in = True
+    #Funciones Necesarias
+    locked_in = False
 
-    comandos = {
-        "listar auditorias": lambda x: listar_auditorias(),
-        "agregar formulario": lambda x: crear_formulario(),
-        "responder auditoria": lambda x: responder_auditoria(),
-        "logout": lambda x: logout(),
-    }
-    
+    comandos = [
+        ("Registrar Auditoria", lambda x: registerAuditoria()),
+        ("Editar Auditoria", lambda x: editAuditoria()),
+        ("Eliminar Auditoria", lambda x: deleteAuditoria()),
+        ("logout", lambda x: logout()),
+    ]
+
+    while True:
+        os.system('cls')
+        print("Login")
+
+        username = input("Usuario > ")
+        password = input("Password > ")
+
+        response = login(username, password)
+
+        if response['status'] == 'correct':
+            locked_in = True
+            break
+        else:
+            print(response['message'])
+
     while locked_in:
         os.system('cls')
-        print("Seleccione comando:")
+        print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
 
-        for comando in comandos.keys():
-            print(comando)
+        for i, comando in enumerate(comandos):
+            print(f"{i + 1}.- {comando[0]}")
 
-        comando = input("Comando > ").lower()
-
-        if comando not in comandos:
+        try:
+            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
+        except KeyboardInterrupt:
+            quit()
+        except:
             continue
 
-        x = comandos[comando](1)
+        if comando > len(comandos):
+            continue
+        
+        os.system('cls')
+        x = comandos[comando][1](1)
 
         if x == "break":
             break
-    
-    #Funciones Necesarias
-    
-    print("Bienvenido a la interfaz de ClienteDigitador")
-    print("Seleccione una opcion")
-    print("1. Registrar Auditoria")
-    print("2. Editar Auditoria")
-    print("3. Eliminar Auditoria")
-    print("4. Listar Auditorias")
-    print("5. Salir")
-    
-    switcher = {
-        1: registerAuditoria,
-        2: editAuditoria,
-        3: deleteAuditoria,
-        4: retrieveAllAuditorias,
-        5: exit
-    }
