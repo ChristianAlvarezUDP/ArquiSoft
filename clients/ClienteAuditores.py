@@ -26,14 +26,23 @@ def request(bus_ip, bus_port, service_name, message):
         response = client_socket.recv(1024)
 
         return response.decode('utf-8')
+    
+def ObtenerAuditoriasPorAuditor(idAuditor):
+    data = {
+        'comando': 'AuditoriasPorAuditor',
+        'id_auditor': idAuditor
+    }
 
+    response = request('127.0.0.1', 5000, 'GenerateReportService.py', json.dumps(data))
+    print(response) 
+    
 
 def login(username, password):
     data = {
         "comando": "login",
         "username": username,
         "password": password,
-        "permisos": "auditor"
+        "permisos": "Auditoria"
     }
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
@@ -170,8 +179,8 @@ if __name__ == '__main__':
         "listar buses auditados": lambda x: listar_buses_auditados(),
         "auditorias por auditor": lambda x: listar_auditorias_por_auditor(id_auditor),
         "logout": lambda x: logout(),
+        "Obtener": lambda x: ObtenerAuditoriasPorAuditor(userId)
     }
-    
     while True:
         os.system('cls')
         print("Login")
@@ -187,8 +196,13 @@ if __name__ == '__main__':
             break
         else:
             print(response['message'])
-            
+                        
     while locked_in:
+        print("Seleccione comando:")
+        for comando in comandos.keys():
+            print(comando)
+        comando = input("Comando > ").lower()
+        if comando not in comandos:
         print("Seleccione comando:")
         for comando in comandos.keys():
             print(comando)
@@ -196,8 +210,10 @@ if __name__ == '__main__':
         if comando not in comandos:
             continue
         x = comandos[comando](1)
+        x = comandos[comando](1)
         if x == "break":
             break
+
 
 
 
