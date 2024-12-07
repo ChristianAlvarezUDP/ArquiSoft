@@ -2,6 +2,9 @@ import socket
 import json
 import os
 
+
+userId = -1
+
 class Colores:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -24,6 +27,14 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
 
+def GetUserId(username):
+    data = {
+        "comando": "GetUserId",
+        "username": username
+    }
+
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+    return json.loads(response)
 
 def login(username, password):
     data = {
@@ -96,7 +107,7 @@ def responder_auditoria():
 
     for form_id in form_data["forms"].keys():
         form = form_data["forms"][form_id]
-        print(f"{form["id"]}: {form["nombre"]}")
+      
 
     form_id = input(" > ")
     form = form_data["forms"][form_id]
@@ -167,6 +178,7 @@ if __name__ == '__main__':
 
         if response['status'] == 'correct':
             locked_in = True
+            userId =   response = GetUserId(username)
             break
         else:
             print(response['message'])
