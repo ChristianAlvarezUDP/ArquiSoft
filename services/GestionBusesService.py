@@ -43,7 +43,7 @@ def updateBus(id, patente, anio, chasis, plazas):
         print(f"SQLite error: {e}")
 
 def auditarBus(id):
-
+    pass
         
 
     

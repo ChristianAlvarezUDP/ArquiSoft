@@ -1,5 +1,6 @@
 import socket
 import json
+import os
 
 #TODO: Revisar direcciones de servicios, cambiar comandos
 
@@ -125,6 +126,7 @@ if __name__ == '__main__':
     }
     
     while locked_in:
+        os.system('cls')
         print("Seleccione comando:")
 
         for comando in comandos.keys():
