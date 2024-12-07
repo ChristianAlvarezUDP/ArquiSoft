@@ -47,8 +47,10 @@ def agregar_formulario(nombre, preguntas):
         'preguntas': preguntas
     }
 
-    request('127.0.0.1', 5000, 'forms_service.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'forms_service.py', json.dumps(data))
+    response = json.loads(response)
 
+    return response
 
 def crear_formulario():
     print('Crear formulario')
@@ -109,7 +111,7 @@ def responder_auditoria():
 
 def auditar_bus():
 
-  selectedBus = input("Usuario > ")
+  selectedBus = input("Escriba la id del bus")
 
   data = {
         'comando': 'auditarBus',
@@ -119,8 +121,20 @@ def auditar_bus():
     }
 
   response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
+  return
 
-  
+def listar_buses_auditados():
+    data = {
+        'comando': 'listarBusesAuditados',
+        "body": {
+        }
+    }
+
+    response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
+    response = json.loads(response)
+    for item in response:
+        print(item)
+    return response
 
 if __name__ == '__main__':
     locked_in = True
@@ -129,11 +143,12 @@ if __name__ == '__main__':
         "listar auditorias": lambda x: listar_auditorias(),
         "agregar formulario": lambda x: crear_formulario(),
         "responder auditoria": lambda x: responder_auditoria(),
-        "Auditar bus": lambda x: auditar_bus(),
+        "auditar bus": lambda x: auditar_bus(),
+        "listar buses auditados": lambda x: listar_buses_auditados(),
         "logout": lambda x: logout(),
     }
     
-    """" 
+    """
     while True:
         print("Login")
         username = input("Usuario > ")
