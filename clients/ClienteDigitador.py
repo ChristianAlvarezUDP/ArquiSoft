@@ -123,7 +123,7 @@ if __name__ == '__main__':
         "responder auditoria": lambda x: responder_auditoria(),
         "logout": lambda x: logout(),
     }
-
+    
     while locked_in:
         print("Seleccione comando:")
 

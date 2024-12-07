@@ -11,15 +11,31 @@ def request(bus_ip, bus_port, service_name, message):
         return response.decode('utf-8')
     
 
+def login(username, password):
+    data = {
+        "comando": "login",
+        "username": username,
+        "password": password,
+        "permisos": "administrador"
+    }
+
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+    return json.loads(response)
+
+
 def listar_usuarios():
-    pass
+    data = {
+        "comando": 'get',
+    }
+
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
 
 
 def logout():
     return "break"
 
 if __name__ == '__main__':
-    locked_in = True
+    locked_in = False
 
     comandos = {
         "listar usuarios": lambda x: listar_usuarios(),
@@ -27,6 +43,20 @@ if __name__ == '__main__':
         "crear reporte": lambda x: crear_reporte(),
         "logout": lambda x: logout(),
     }
+
+    while True:
+        print("Login")
+
+        username = input("Usuario > ")
+        password = input("Password > ")
+
+        response = login(username, password)
+
+        if response['status'] == 'correct':
+            locked_in = True
+            break
+        else:
+            print(response['message'])
 
     while locked_in:
         print("Seleccione comando:")
