@@ -9,7 +9,7 @@ def GenerarReporte(fecha_inicio, fecha_fin):
     return
 
 def auditoriasPorAuditor(id_auditor):
-
+    
 
     return
 
@@ -28,8 +28,9 @@ def service_worker(service_name, host, port):
 
             if data["comando"] == "GenerarReporte":
                 response = GenerarReporte(data["id_form"], data["fecha_inicio"], data["fecha_fin"])
-            elif:
-                response =  
+            elif data["comando"] == "GenerarReporte":
+                response = auditoriasPorAuditor(data["id_auditor"])
+
 
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
