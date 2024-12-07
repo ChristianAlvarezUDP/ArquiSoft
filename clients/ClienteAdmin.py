@@ -109,7 +109,7 @@ if __name__ == '__main__':
         ("listar usuarios", lambda x: listar_usuarios()),
         ("agregar usuario", lambda x: agregar_usuario()),
         ("agregar grupo", lambda x: agregar_grupo()),
-        ("crear reporte", lambda x: crear_reporte()),
+        #("crear reporte", lambda x: crear_reporte()),
         ("logout", lambda x: logout()),
     ]
 

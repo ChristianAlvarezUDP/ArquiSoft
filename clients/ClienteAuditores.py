@@ -136,6 +136,16 @@ def listar_buses_auditados():
         print(item)
     return response
 
+def listar_auditorias_por_auditor():
+    
+    data = {
+        'comando': 'verAuditoriasHechas',
+        "body":{
+            'id_auditor': id_auditor,
+        }
+    }
+
+
 if __name__ == '__main__':
     locked_in = True
 
