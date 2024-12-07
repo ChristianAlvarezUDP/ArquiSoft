@@ -1,16 +1,105 @@
-# Clients
+# Arquitectura de Software
 
-crear los 3 clientes (digitador, auditor, administrador) con sus funciones
+**Integrantes:**  
+Christian Álvarez, Manuel Cáceres, Vicente Lineros, Eduardo Riquelme, Cristián Rodríguez.
 
-# Login
+---
 
-auth_service mantener usuarios logeados
+- [ ] **Componentes**
+    - [ ] **Componentes Clientes**
+        - [ ] **Portal de Digitadores**  
+            - Permite a los digitadores registrar y modificar auditorías.  
+            - **Interfaces de salida (RF 1, RF 4, RF 9, RF 10, RF 11):**
+                - ID del Bus:
+                - **Formulario de Registro de Auditoría:**
+                    - Datos del bus (placa, número interno, etc.).
+                    - Fecha y hora de la auditoría.
+                    - Respuestas a las preguntas del formulario de auditoría (según el tipo de auditoría).
+                    - Estado (en operación, en mantenimiento, etc.).
+                - Credenciales de Autenticación:
+                    - Nombre de usuario.
+                    - Contraseña.
+            - **Interfaces de entrada (RF 1, RF 9, RF 10):**
+                - Auditoría Anterior.
+                - **Confirmación de Registro de Auditoría:**
+                    - Mensaje de éxito o error al registrar la auditoría.
+                    - ID de la auditoría registrada.
+                - **Lista de Buses:**
+                    - Tabla con información de los buses que coinciden con los filtros de búsqueda.
+                - **Formularios de Auditoría:**
+                    - Visualización del formulario de auditoría con las preguntas a responder.
+        - [ ] **Portal de Administración del Sistema**  
+            - **Interfaz de salida (RF 2, RF 5, RF 6, RF 7, RF 8, RF 14, RF 15):**
+                - Credenciales de Autenticación.
+                - **Datos de Usuario:** Información del usuario (nombre, rol, etc.).
+                - **Datos de Rol:** Información del rol (permisos, etc.).
+                - **Datos del Formulario:** Estructura del formulario (preguntas, tipo de respuestas, etc.).
+            - **Interfaz de entrada (RF 7, RF 8, RF 14):**
+                - **Confirmación de Operación:** Mensaje de éxito o error.
+                - **Lista de Usuarios:** Tabla con información de los usuarios.
+                - **Lista de Roles:** Tabla con información de los roles.
+                - **Lista de Formularios:** Tabla con información de los formularios.
+                - **Lista de Auditorías:** Tabla de auditorías registradas.
+        - [ ] **Portal del Auditor**  
+            - Permite a los auditores gestionar buses auditados y pendientes.  
+            - **Interfaz de salida (RF 5, RF 12, RF 13, RF 16):**
+                - Credenciales de Autenticación:
+                    - Nombre de usuario.
+                    - Contraseña.
+                - **Selección de Buses a Auditar:**
+                    - Lista de buses disponibles con filtros.
+                - **Confirmación de Bus Auditado.**
+            - **Interfaz de entrada (RF 5, RF 13):**
+                - **Confirmación de Autenticación.**
+                - **Lista de Buses Auditados:** Historial de buses auditados.
+                - **Lista de Buses Pendientes:** Buses asignados sin auditar.
+                - **Confirmación de Registro de Auditoría:** Mensaje de éxito o error.
 
-# Auditorias
-
-Get all auditorias
-Get una auditoria por id
-
-# Reportes
-
-Crear reportes
+    - [ ] **Componentes Servicios**
+        - [ ] **Servicio de Autenticación (RF 5):**
+            - Recibe credenciales y retorna el estado y un token.
+            - **Interfaz de salida:**
+                - Estado de la conexión (éxito/fallo).
+                - JSON Web Token (JWT).
+            - **Interfaz de entrada:**
+                - Credenciales de autenticación.
+        - [ ] **Servicio de Gestión de Auditorías (RF 1, RF 6, RF 8, RF 15, RF 16):**
+            - Gestiona solicitudes para auditorías (crear, consultar, modificar, eliminar).
+            - **Interfaz de salida:**
+                - Confirmación de operación.
+                - Datos de la auditoría.
+                - Formulario en formato query.
+            - **Interfaz de entrada:**
+                - Objeto Auditoría (JSON).
+                - Identificador de la auditoría.
+        - [ ] **Servicio de Gestión de Formularios (RF 2, RF 4, RF 9, RF 10):**
+            - Gestiona solicitudes de formularios.
+            - **Interfaz de salida:**
+                - Estado de la operación.
+                - Datos del formulario.
+            - **Interfaz de entrada:**
+                - Datos del formulario.
+                - Identificador del formulario.
+        - [ ] **Servicio de Generación de Reportes (RF 3, RF 14, RF 16):**
+            - Genera reportes de auditorías y buses.
+            - **Interfaz de salida:**
+                - Reporte en formato PDF o Excel.
+            - **Interfaz de entrada:**
+                - Tipo de reporte.
+                - Parámetros del reporte.
+                - Formato del reporte.
+        - [ ] **Servicio de Gestión de Buses (RF 10, RF 12, RF 13):**
+            - Gestiona información de buses y registro de buses auditados.
+            - **Interfaz de salida:**
+                - Datos del bus.
+                - Estado de la operación.
+            - **Interfaz de entrada:**
+                - Identificador del bus.
+                - Datos del bus.
+        - [ ] **Servicio de estado de auditoría buses (RF 12):**
+            - Informa si un bus ha sido auditado.
+            - **Interfaz de salida:**
+                - Lista de buses auditados.
+                - Lista de buses pendientes.
+            - **Interfaz de entrada:**
+                - Confirmación de bus auditado.
