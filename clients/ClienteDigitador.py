@@ -1,6 +1,7 @@
 import socket
 import json
 import os
+import os
 
 #TODO: Revisar direcciones de servicios, cambiar comandos
 
@@ -48,7 +49,7 @@ def retrieveCampos(id_grupo_campos):
             "id_grupo_campos" : id_grupo_campos
         }
     }
-    response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:
@@ -150,28 +151,88 @@ def editAuditoria():
     datos = retrieveAuditoriaByID(idAuditoria)
     preguntas = retrieveCampos(datos['id_grupo_campos'])
     
-    print(f"ID: {datos['id']}\n Marca Temporal: {datos['marca_temporal']}\n Fecha: {datos['fecha']}\n ID Grupo Campos: {datos['id_grupo_campos']}\n ID Bus: {datos['id_bus']}\n ID Tipo Auditoria: {datos['id_tipo_auditoria']}\n ID Auditor: {datos['id_auditor']}")
-    print("Respuestas Formulario:")
-    for respuesta  in respuestas:
-        print(f"Pregunta: {pregunta[respuesta.enumerate()]}")
-        print(f"Respuesta: {respuesta}")
-        
-    
-    data = {
+    {
         "comando": 'edit',
         "body": {
             "id" : id,
-            "marca_temporal": marca_temporal,
-            "fecha" : fecha,
-            "id_grupo_campos" : id_grupo_campos,
-            "id_bus" : id_bus,
-            "id_tipo_auditoria" : id_tipo_auditoria,
-            "id_auditor" : id_auditor,
+            "marca_temporal": datos['marca_temporal'],
+            "fecha" : datos['fecha'],
+            "id_grupo_campos" : datos['id_grupo_campos'],
+            "id_bus" : datos['id_bus'],
+            "id_tipo_auditoria" : datos['id_tipo_auditoria'],
+            "id_auditor" : datos['id_auditor'],
             "respuestas" : respuestas 
         }
     }
+    
+    while True:
+        print(f"ID: {datos['id']}\n Marca Temporal: {datos['marca_temporal']}\n Fecha: {datos['fecha']}\n ID Grupo Campos: {datos['id_grupo_campos']}\n ID Bus: {datos['id_bus']}\n ID Tipo Auditoria: {datos['id_tipo_auditoria']}\n ID Auditor: {datos['id_auditor']}")
+        print("Respuestas Formulario:")
+        for respuesta  in respuestas:
+            print(f"Pregunta: {preguntas[respuesta.enumerate()]}")
+            print(f"Respuesta: {respuesta}")
+        
+        print("Seleccione el campo a editar:")
+        print("1. Marca Temporal")
+        print("2. Fecha")
+        print("3. ID Grupo Campos")
+        print("4. ID Bus")
+        print("5. ID Tipo Auditoria")
+        print("6. ID Auditor")
+        print("7. Respuestas")
+
+        opcion = int(input(" > "))
+
+        if opcion == 1:
+            print("Escriba nueva Marca Temporal")
+            marca_temporal = input(" > ")
+        elif opcion == 2:
+            print("Escriba nueva Fecha")
+            fecha = input(" > ")
+        elif opcion == 3:
+            print("Escriba nuevo ID Grupo Campos")
+            id_grupo_campos = input(" > ")
+        elif opcion == 4:
+            print("Escriba nuevo ID Bus")
+            id_bus = input(" > ")
+        elif opcion == 5:
+            print("Escriba nuevo ID Tipo Auditoria")
+            id_tipo_auditoria = input(" > ")
+        elif opcion == 6:
+            print("Escriba nuevo ID Auditor")
+            id_auditor = input(" > ")
+        elif opcion == 7:
+            print("Elija la respuesta a editar")
+            
+        else:
+            print("Opción no válida")
 
 if __name__ == '__main__':
+    locked_in = True
+
+    comandos = {
+        "listar auditorias": lambda x: listar_auditorias(),
+        "agregar formulario": lambda x: crear_formulario(),
+        "responder auditoria": lambda x: responder_auditoria(),
+        "logout": lambda x: logout(),
+    }
+    
+    while locked_in:
+        os.system('cls')
+        print("Seleccione comando:")
+
+        for comando in comandos.keys():
+            print(comando)
+
+        comando = input("Comando > ").lower()
+
+        if comando not in comandos:
+            continue
+
+        x = comandos[comando](1)
+
+        if x == "break":
+            break
     
     #Funciones Necesarias
     
