@@ -1,6 +1,7 @@
 import socket
 import json
 import os
+import os
 
 #TODO: Revisar direcciones de servicios, cambiar comandos
 
@@ -207,6 +208,31 @@ def editAuditoria():
             print("Opción no válida")
 
 if __name__ == '__main__':
+    locked_in = True
+
+    comandos = {
+        "listar auditorias": lambda x: listar_auditorias(),
+        "agregar formulario": lambda x: crear_formulario(),
+        "responder auditoria": lambda x: responder_auditoria(),
+        "logout": lambda x: logout(),
+    }
+    
+    while locked_in:
+        os.system('cls')
+        print("Seleccione comando:")
+
+        for comando in comandos.keys():
+            print(comando)
+
+        comando = input("Comando > ").lower()
+
+        if comando not in comandos:
+            continue
+
+        x = comandos[comando](1)
+
+        if x == "break":
+            break
     
     #Funciones Necesarias
     
