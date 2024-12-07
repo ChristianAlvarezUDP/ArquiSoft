@@ -7,49 +7,6 @@ import sqlite3
 bus_ip = '127.0.0.1'
 bus_port = 5000
 
-TablaDePrivilegios = {
-    "Admin": "2af264b99ff1d93e9477482ed9037db8",
-    "Digitador": "3d17a2504f185d7cae5a0044a6040d18",
-    "Auditor": "83088ecc77b52a62602337d2c37b4772"
-}
-
-TablaPrivilegiosJerarquia = {    
-    "Admin": 3,
-    "Digitador": 2,
-    "Auditor": 1
-}
-
-def check_privileges(roleHash):
-    role = next((r for r, h in TablaDePrivilegios.items() if h == roleHash), None)
-    
-    if role is None:
-        return "Invalid role hash"
-    
-    return TablaPrivilegiosJerarquia.get(role, "Role not found")
-
-def login(username, password):
-    try:
-        conn = sqlite3.connect("sqlite/arqui.db")
-        cursor = conn.cursor()
-
-        cursor.execute('''
-            SELECT role FROM usuario
-            WHERE username = ? AND password = ?;
-        ''', (username, password))
-
-        result = cursor.fetchone()
-
-        if result:
-            role = result[0]
-            return TablaDePrivilegios.get(role, "Role not found")
-        else:
-            return "Invalid username or password"
-    except sqlite3.Error as e:
-        return f"Database error: {e}"
-    finally:
-        conn.close()
-
-
 
 def service_worker(service_name, host, port):
     print(f"{service_name} iniciando en {host}:{port}")
@@ -62,7 +19,6 @@ def service_worker(service_name, host, port):
 
             data = json.loads(data)
             response = handle_command(data)
-
 
             print(f"{service_name} received: {data}")
             client_socket.sendall(json.dumps(response).encode('utf-8'))
