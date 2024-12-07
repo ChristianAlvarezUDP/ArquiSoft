@@ -1,5 +1,22 @@
 import socket
 import json
+import os
+
+
+userId = -1
+
+class Colores:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 
 def request(bus_ip, bus_port, service_name, message):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
@@ -10,23 +27,25 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
 
+def GetUserId(username):
+    data = {
+        "comando": "GetUserId",
+        "username": username
+    }
+
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+    return json.loads(response)
 
 def login(username, password):
     data = {
-        "comando": 'login',
-        "data": {
-            "user": username,
-            "password": password
-        }
+        "comando": "login",
+        "username": username,
+        "password": password,
+        "permisos": "auditor"
     }
 
-    response = request('127.0.0.1', 5000, 'auth_service.py', json.dumps(data))
-    response = json.loads(response)
-
-    if 'status' not in response:
-        return False
-
-    return response['status'] == "correct"
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+    return json.loads(response)
 
 
 def listar_auditorias():
@@ -88,7 +107,7 @@ def responder_auditoria():
 
     for form_id in form_data["forms"].keys():
         form = form_data["forms"][form_id]
-        print(f"{form["id"]}: {form["nombre"]}")
+      
 
     form_id = input(" > ")
     form = form_data["forms"][form_id]
@@ -137,7 +156,7 @@ def listar_buses_auditados():
     return response
 
 if __name__ == '__main__':
-    locked_in = True
+    locked_in = False
 
     comandos = {
         "listar auditorias": lambda x: listar_auditorias(),
@@ -148,35 +167,44 @@ if __name__ == '__main__':
         "logout": lambda x: logout(),
     }
     
-    """
     while True:
+        os.system('cls')
         print("Login")
+
         username = input("Usuario > ")
-        password = input("Contraseña > ")
-    
-        if login(username, password):
+        password = input("Password > ")
+
+        response = login(username, password)
+
+        if response['status'] == 'correct':
             locked_in = True
+            userId =   response = GetUserId(username)
             break
         else:
-            print("Credenciales incorrectas")
-    """
+            print(response['message'])
 
     while locked_in:
-        print("Seleccione comando:")
+        os.system('cls')
+        print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
 
-        for comando in comandos.keys():
-            print(comando)
+        for i, comando in enumerate(comandos):
+            print(f"{i + 1}.- {comando[0]}")
 
-        comando = input("Comando > ").lower()
-
-        if comando not in comandos:
+        try:
+            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
+        except KeyboardInterrupt:
+            quit()
+        except:
             continue
 
-        x = comandos[comando](1)
+        if comando > len(comandos):
+            continue
+        
+        os.system('cls')
+        x = comandos[comando][1](1)
 
         if x == "break":
             break
-
 
 
 
