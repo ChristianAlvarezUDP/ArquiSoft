@@ -30,7 +30,7 @@ def login(username, password):
         "comando": "login",
         "username": username,
         "password": password,
-        "permisos": "auditoria"
+        "permisos": "auditor"
     }
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
