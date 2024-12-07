@@ -171,7 +171,6 @@ def editAuditoria():
         }
     }
 
-
 if __name__ == '__main__':
     
     #Funciones Necesarias
