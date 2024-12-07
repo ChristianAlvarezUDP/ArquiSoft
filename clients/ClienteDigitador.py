@@ -12,16 +12,33 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
     
-def retriveAuditoria():
+def retrieveAuditoriaAnswersByID():
     data = {
         "comando": 'retrieve',
+        "body": {
+            "id" : id
+        }
+    }
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    if response:
+        response = json.loads(response)
+    else:
+        print ("No recibe respuesta")
+    print(response)
+
+def retrieveAuditoriaByID(id):
+    data = {
+        "comando": 'retrieveAuditoriaByID',
+        "body": {
+            "id" : id
+        }
     }
     response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:
         print ("No recibe respuesta")
-    print(response)
+    return response
 
 def retrieveCampos(id_grupo_campos):
     data = {
@@ -35,8 +52,18 @@ def retrieveCampos(id_grupo_campos):
         response = json.loads(response)
     else:
         print ("No recibe respuesta")
-    print(response)
     return response
+    
+def retrieveAllAuditorias(id):
+    data = {
+        "comando": 'retrieve',
+    }
+    response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
+    if response:
+        response = json.loads(response)
+    else:
+        print ("No recibe respuesta")
+    print(response)
     
 def retrieveGruposCampos():
     data = {
@@ -114,28 +141,52 @@ def registerAuditoria():
     response = addAuditoria(id, marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
     return response
 
-if __name__ == '__main__':
-    locked_in = True
-
-    comandos = {
-        "listar auditorias": lambda x: listar_auditorias(),
-        "agregar formulario": lambda x: crear_formulario(),
-        "responder auditoria": lambda x: responder_auditoria(),
-        "logout": lambda x: logout(),
+def editAuditoria():
+    print("Escriba id de la auditoria a editar")
+    idAuditoria = input(" > ")
+    
+    respuestas = retrieveAuditoriaAnswersByID(idAuditoria)
+    datos = retrieveAuditoriaByID(idAuditoria)
+    preguntas = retrieveCampos(datos['id_grupo_campos'])
+    
+    print(f"ID: {datos['id']}\n Marca Temporal: {datos['marca_temporal']}\n Fecha: {datos['fecha']}\n ID Grupo Campos: {datos['id_grupo_campos']}\n ID Bus: {datos['id_bus']}\n ID Tipo Auditoria: {datos['id_tipo_auditoria']}\n ID Auditor: {datos['id_auditor']}")
+    print("Respuestas Formulario:")
+    for respuesta  in respuestas:
+        print(f"Pregunta: {pregunta[respuesta.enumerate()]}")
+        print(f"Respuesta: {respuesta}")
+        
+    
+    data = {
+        "comando": 'edit',
+        "body": {
+            "id" : id,
+            "marca_temporal": marca_temporal,
+            "fecha" : fecha,
+            "id_grupo_campos" : id_grupo_campos,
+            "id_bus" : id_bus,
+            "id_tipo_auditoria" : id_tipo_auditoria,
+            "id_auditor" : id_auditor,
+            "respuestas" : respuestas 
+        }
     }
 
-    while locked_in:
-        print("Seleccione comando:")
 
-        for comando in comandos.keys():
-            print(comando)
-
-        comando = input("Comando > ").lower()
-
-        if comando not in comandos:
-            continue
-
-        x = comandos[comando](1)
-
-        if x == "break":
-            break
+if __name__ == '__main__':
+    
+    #Funciones Necesarias
+    
+    print("Bienvenido a la interfaz de ClienteDigitador")
+    print("Seleccione una opcion")
+    print("1. Registrar Auditoria")
+    print("2. Editar Auditoria")
+    print("3. Eliminar Auditoria")
+    print("4. Listar Auditorias")
+    print("5. Salir")
+    
+    switcher = {
+        1: registerAuditoria,
+        2: editAuditoria,
+        3: deleteAuditoria,
+        4: retrieveAllAuditorias,
+        5: exit
+    }
