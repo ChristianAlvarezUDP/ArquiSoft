@@ -3,7 +3,7 @@ import socket
 import threading
 import sqlite3
 import json
-
+from datetime import datetime
 
 def GetBus(id):
     try:
@@ -43,10 +43,50 @@ def updateBus(id, patente, anio, chasis, plazas):
         print(f"SQLite error: {e}")
 
 def auditarBus(id):
-    pass
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    query = """
+            INSERT INTO buses_auditados (bus_id, fecha_auditado)
+            VALUES (?, ?)
+            """
+    try:
+        conn = sqlite3.connect('sqlite/arqui.db')
+        cursor = conn.cursor()
+        cursor.execute(query, (id, current_time))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error inserting data: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+        return "Bus auditado correctamente"
         
+def listarBusesAuditados():
+    query = """
+    SELECT * 
+    FROM buses_auditados 
+    WHERE fecha_auditado BETWEEN datetime('now', '-1 day') AND datetime('now');
+    """
+    try:
+        conn = sqlite3.connect('sqlite/arqui.db')
+        cursor = conn.cursor()
+        cursor.execute(query)
+        buses = cursor.fetchall()
 
+        columns = [description[0] for description in cursor.description]
+        
+        buses_list = [dict(zip(columns, row)) for row in buses]
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error inserting data: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+        
+    return json.dumps(buses_list)
     
+
+
+
 def service_worker(service_name, host, port):
     print(f"{service_name} starting on {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -68,6 +108,8 @@ def service_worker(service_name, host, port):
                 response = updateBus(data["id"], data["placa"], data["marca"], data["modelo"], data["capacidad"])
             elif data["comando"] == "auditarBus":
                 response = auditarBus(data["body"]["selectedBus"])
+            elif data["comando"] == "listarBusesAuditados":
+                response = listarBusesAuditados()
 
 
             client_socket.sendall(response.encode('utf-8'))
