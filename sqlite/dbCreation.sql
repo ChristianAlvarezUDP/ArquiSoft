@@ -83,6 +83,12 @@ CREATE TABLE IF NOT EXISTS respuesta_auditoria (
   FOREIGN KEY (id_auditoria) REFERENCES auditoria (id),
   FOREIGN KEY (id_campo_auditoria) REFERENCES campo_auditoria (id));
 
+CREATE TABLE buses_auditados (
+    id INTEGER PRIMARY KEY,
+    bus_id INTEGER NOT NULL,
+    fecha_auditado TIMESTAMP NOT NULL,
+    FOREIGN KEY (bus_id) REFERENCES bus(id) ON DELETE CASCADE
+);
 
 INSERT INTO grupo_usuario VALUES(1, 'Auditoria');
 INSERT INTO grupo_usuario VALUES(2, 'Digitador');
