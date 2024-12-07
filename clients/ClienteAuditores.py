@@ -30,7 +30,7 @@ def login(username, password):
         "comando": "login",
         "username": username,
         "password": password,
-        "permisos": "Auditor"
+        "permisos": "auditor"
     }
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
@@ -144,7 +144,7 @@ def listar_buses_auditados():
         print(item)
     return response
 
-def listar_auditorias_por_auditor():
+def listar_auditorias_por_auditor(id_auditor):
     
     data = {
         'comando': 'verAuditoriasHechas',
@@ -152,6 +152,8 @@ def listar_auditorias_por_auditor():
             'id_auditor': id_auditor,
         }
     }
+    response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
+    response = json.loads(response)
 
 
 if __name__ == '__main__':
@@ -163,6 +165,7 @@ if __name__ == '__main__':
         "responder auditoria": lambda x: responder_auditoria(),
         "auditar bus": lambda x: auditar_bus(),
         "listar buses auditados": lambda x: listar_buses_auditados(),
+        "auditorias por auditor": lambda x: listar_auditorias_por_auditor(id_auditor),
         "logout": lambda x: logout(),
     }
     

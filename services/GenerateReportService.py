@@ -8,6 +8,11 @@ import json
 def GenerarReporte(fecha_inicio, fecha_fin):
     return
 
+def auditoriasPorAuditor(id_auditor):
+
+
+    return
+
 def service_worker(service_name, host, port):
     print(f"{service_name} starting on {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -23,6 +28,8 @@ def service_worker(service_name, host, port):
 
             if data["comando"] == "GenerarReporte":
                 response = GenerarReporte(data["id_form"], data["fecha_inicio"], data["fecha_fin"])
+            elif:
+                response =  
 
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
