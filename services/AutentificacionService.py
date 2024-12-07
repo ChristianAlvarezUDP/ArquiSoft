@@ -20,13 +20,13 @@ def service_worker(service_name, host, port):
             response = handle_command(data)
 
             print(f"{service_name} received: {data}")
-            client_socket.sendall(response.encode('utf-8'))
+            client_socket.sendall(json.dumps(response).encode('utf-8'))
             client_socket.close()
 
 
 def handle_command(data):
     if data['comando'] == 'login':
-        success = login(data["username"], data["password"], data["permisos"])
+        success = login(data["username"], data["password"], data["permisos"].lower())
 
         if success:
             return {
@@ -38,8 +38,32 @@ def handle_command(data):
                 'message': 'Credenciales incorrectas'
             }
     
-    elif data['comando'] == 'get':
-        return get_users()
+    elif data['comando'] == 'get_users':
+        users = get_users()
+
+        return {
+            'status': 'correct',
+            'usuarios': users
+        }
+    elif data['comando'] == 'get_groups':
+        groups = get_groups()
+
+        return {
+            'status': 'correct',
+            'groups': groups
+        }
+    elif data['comando'] == 'add_user':
+        success = add_user(data['username'], data['password'], data['group_id'])
+
+        return {
+            'status': 'correct'
+        }
+    elif data['comando'] == 'add_group':
+        success = add_group(data['nombre'])
+
+        return {
+            'status': 'correct'
+        }
     else:
         return {
             'status': 'error',
@@ -54,10 +78,10 @@ def login(username, password, permisos):
     cursor.execute(f'''
         SELECT * FROM usuario AS u
         JOIN grupo_usuario AS gu ON u.id_grupo = gu.id
-        WHERE username = '{username}'
-        AND password = '{password}'
-        AND gu.nombre = {permisos};
-        ''')
+        WHERE username = (?)
+        AND password = (?)
+        AND LOWER(gu.nombre) = (?)
+        ''', (username, password, permisos))
 
     result = cursor.fetchall()
     return len(result) > 0
@@ -68,13 +92,61 @@ def get_users():
     cursor = conn.cursor()
 
     cursor.execute(f'''
-        SELECT * FROM usuario;
+        SELECT * FROM usuario AS u
+        JOIN grupo_usuario AS gu ON u.id_grupo = gu.id;
         ''')
     
     result = cursor.fetchall()
+    conn.close()
 
     return result
 
+def get_groups():
+    conn = sqlite3.connect("sqlite/arqui.db")
+    cursor = conn.cursor()
+
+    cursor.execute(f'''
+        SELECT * FROM grupo_usuario;
+        ''')
+    
+    result = cursor.fetchall()
+    conn.close()
+
+    return result
+
+def add_user(username, password, group_id):
+    try:
+        conn = sqlite3.connect("sqlite/arqui.db")
+        cursor = conn.cursor()
+
+        cursor.execute(f'''
+            INSERT INTO usuario (username, password, id_grupo) VALUES (?, ?, ?)
+            ''', (username, password, group_id))
+        
+        conn.commit()
+        conn.close()
+
+        return True
+    except:
+        return False
+
+
+def add_group(name):
+    try:
+        conn = sqlite3.connect("sqlite/arqui.db")
+        cursor = conn.cursor()
+
+        cursor.execute(f'''
+            INSERT INTO grupo_usuario (nombre) VALUES (?)
+            ''', (name,))
+        
+        conn.commit()
+        conn.close()
+
+        return True
+    except:
+        return False
+    
 
 if __name__ == '__main__':
     bus_ip = sys.argv[2]
