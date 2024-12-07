@@ -42,6 +42,9 @@ def updateBus(id, patente, anio, chasis, plazas):
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
 
+def auditarBus(id):
+
+        
 
     
 def service_worker(service_name, host, port):
@@ -63,6 +66,9 @@ def service_worker(service_name, host, port):
                 response = createBus(data["id"], data["placa"], data["marca"], data["modelo"], data["capacidad"])
             elif data["comando"] == "updateBus":
                 response = updateBus(data["id"], data["placa"], data["marca"], data["modelo"], data["capacidad"])
+            elif data["comando"] == "auditarBus":
+                response = auditarBus(data["body"]["selectedBus"])
+
 
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
