@@ -27,14 +27,6 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
 
-def GetUserId(username):
-    data = {
-        "comando": "GetUserId",
-        "username": username
-    }
-
-    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
-    return json.loads(response)
 
 def login(username, password):
     data = {
@@ -178,7 +170,7 @@ if __name__ == '__main__':
 
         if response['status'] == 'correct':
             locked_in = True
-            userId =   response = GetUserId(username)
+            userId =  response
             break
         else:
             print(response['message'])
@@ -186,9 +178,8 @@ if __name__ == '__main__':
     while locked_in:
         os.system('cls')
         print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
-
         for i, comando in enumerate(comandos):
-            print(f"{i + 1}.- {comando[0]}")
+            print(f"{i + 1}.- {comando}")
 
         try:
             comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1

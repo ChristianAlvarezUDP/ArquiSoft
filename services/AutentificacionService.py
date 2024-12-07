@@ -9,16 +9,6 @@ bus_port = 5000
 
 
 
-def GetUserId(username):
-    conn = sqlite3.connect("sqlite/arqui.db")
-    cursor = conn.cursor()
-
-    cursor.execute(f'''
-        SELECT id FROM usuario WHERE username = (?)
-        ''', (username,))
-
-    result = cursor.fetchall()
-    return result[0][0]
 
 def service_worker(service_name, host, port):
     print(f"{service_name} iniciando en {host}:{port}")
@@ -43,7 +33,8 @@ def handle_command(data):
 
         if success:
             return {
-                'status': 'correct'
+                'status': 'correct',
+                'idUsuario': success
             }
         else:
             return {
@@ -76,13 +67,7 @@ def handle_command(data):
 
         return {
             'status': 'correct'
-        }
-    elif data['comando'] == 'get_user_id':
-        user_id = GetUserId(data['username'])
-
-        return {
-            'status': 'correct',
-            'user_id': user_id
+            
         }
     else:
         return {
@@ -96,7 +81,7 @@ def login(username, password, permisos):
     cursor = conn.cursor()
 
     cursor.execute(f'''
-        SELECT * FROM usuario AS u
+        SELECT id_grupo FROM usuario AS u
         JOIN grupo_usuario AS gu ON u.id_grupo = gu.id
         WHERE username = (?)
         AND password = (?)
@@ -104,7 +89,7 @@ def login(username, password, permisos):
         ''', (username, password, permisos))
 
     result = cursor.fetchall()
-    return len(result) > 0
+    return result
 
 
 def get_users():
