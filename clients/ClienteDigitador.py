@@ -151,7 +151,7 @@ def editAuditoria():
     datos = retrieveAuditoriaByID(idAuditoria)
     preguntas = retrieveCampos(datos['id_grupo_campos'])
     
-    {
+    response = {
         "comando": 'edit',
         "body": {
             "id" : id,
@@ -168,7 +168,7 @@ def editAuditoria():
     while True:
         print(f"ID: {datos['id']}\n Marca Temporal: {datos['marca_temporal']}\n Fecha: {datos['fecha']}\n ID Grupo Campos: {datos['id_grupo_campos']}\n ID Bus: {datos['id_bus']}\n ID Tipo Auditoria: {datos['id_tipo_auditoria']}\n ID Auditor: {datos['id_auditor']}")
         print("Respuestas Formulario:")
-        for respuesta  in respuestas:
+        for respuesta in respuestas:
             print(f"Pregunta: {preguntas[respuesta.enumerate()]}")
             print(f"Respuesta: {respuesta}")
         
@@ -185,7 +185,7 @@ def editAuditoria():
 
         if opcion == 1:
             print("Escriba nueva Marca Temporal")
-            marca_temporal = input(" > ")
+            response["body"]['marca_temporal'] = input(" > ")
         elif opcion == 2:
             print("Escriba nueva Fecha")
             fecha = input(" > ")
@@ -203,9 +203,20 @@ def editAuditoria():
             id_auditor = input(" > ")
         elif opcion == 7:
             print("Elija la respuesta a editar")
-            
         else:
             print("Opción no válida")
+
+def login(username, password):
+    data = {
+        "comando": "login",
+        "username": username,
+        "password": password,
+        "permisos": "Digitador"
+    }
+
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+    return json.loads(response)
+
 
 if __name__ == '__main__':
     locked_in = True
