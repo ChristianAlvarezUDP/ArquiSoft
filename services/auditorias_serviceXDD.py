@@ -10,14 +10,14 @@ def service_worker(service_name, host, port):
         server_socket.bind((host, port))
         server_socket.listen()
         while True:
-            print("COMO LAS WEAS")
             bus_socket, _ = server_socket.accept()
             data = bus_socket.recv(1024).decode('utf-8')
-            print(f"{service_name} received: {data}")
 
+            response = ""
             data = json.loads(data)
-            print(data)
             
+            print(f"Data: {data}")
+
             if data['comando'] == 'retrieve':
                 conn = sqlite3.connect("sqlite/arqui.db")
                 cursor = conn.cursor()
@@ -27,7 +27,9 @@ def service_worker(service_name, host, port):
                     ''')
                 result = cursor.fetchall()
                 print(f"Obtenido: {result}")
-            bus_socket.sendall(result.encode('utf-8'))
+                response = json.dumps(result)
+     
+            bus_socket.sendall(response.encode('utf-8'))
             bus_socket.close()
 
 

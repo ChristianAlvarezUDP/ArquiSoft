@@ -7,22 +7,24 @@ def request(bus_ip, bus_port, service_name, message):
         request = f"{service_name}:{message}"
         client_socket.sendall(request.encode('utf-8'))
         response = client_socket.recv(1024)
-        print(f"Response: {response.decode('utf-8')}")
 
         return response.decode('utf-8')
-
+    
 def retriveAuditoria():
     data = {
         "comando": 'retrieve',
     }
     
-    response = request('127.0.0.1', 5000, 'auditorias_servicesXDD.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
 
-    resonse = json.loads(response)
+    if response:
+        response = json.loads(response)
+    else:
+        print ("No recibe respuesta")
     
     print(response)
 
 if __name__ == '__main__':
-    locked_in = True
-
+    print("Comienza ejecucion")
+    
     retriveAuditoria()
