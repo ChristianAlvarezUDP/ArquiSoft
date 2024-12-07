@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS campo_auditoria (
   id INTEGER PRIMARY KEY,
   id_grupo INTEGER NOT NULL,
   titulo TEXT NOT NULL,
-  FOREIGN KEY (id_grupo) REFERENCES grupo_campos (id));
+  FOREIGN KEY (id_grupo) REFERENCES grupo_campos (id) ON DELETE CASCADE);
 
 -- Table respuesta_auditoria
 DROP TABLE IF EXISTS respuesta_auditoria;
@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS respuesta_auditoria (
   valor TEXT NOT NULL,
   UNIQUE (id_auditoria, id_campo_auditoria),
   PRIMARY KEY (id_auditoria, id_campo_auditoria),
-  FOREIGN KEY (id_auditoria) REFERENCES auditoria (id),
-  FOREIGN KEY (id_campo_auditoria) REFERENCES campo_auditoria (id));
+  FOREIGN KEY (id_auditoria) REFERENCES auditoria (id) ON DELETE CASCADE,
+  FOREIGN KEY (id_campo_auditoria) REFERENCES campo_auditoria (id) ON DELETE CASCADE);
 
 CREATE TABLE buses_auditados (
     id INTEGER PRIMARY KEY,
@@ -126,7 +126,7 @@ INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(2, 'Limpieza R2');
 INSERT INTO auditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor)
 VALUES (CURRENT_TIMESTAMP, '2024-12-06 2:00:00', 1, 1, 1, 1);
 INSERT INTO auditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor)
-VALUES (CURRENT_TIMESTAMP, '2024-12-06 3:00:00', 2, 2, 2, 2);
+VALUES (CURRENT_TIMESTAMP, '2024-12-07 3:00:00', 2, 2, 2, 2);
 
 INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(1, 1, 'Funciona');
 INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(1, 2, 'Limpio');

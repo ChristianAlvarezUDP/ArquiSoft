@@ -27,12 +27,23 @@ def service_worker(service_name, host, port):
                     'auditoria': auditoria
                 }
 
+                response = json.dumps(result)
+
             elif data['comando'] == 'get_all_auditorias':
                 auditorias = get_all_auditorias()
 
                 result = {
                     'status':  'correct',
                     'auditorias': auditorias
+                }
+
+                response = json.dumps(result)
+
+            elif data['comando'] == 'delete_auditoria':
+                success = delete_auditoria(data['auditoria_id'])
+
+                result = {
+                    'status':  'correct'
                 }
 
                 response = json.dumps(result)
@@ -54,20 +65,27 @@ def get_auditoria(auditoria_id):
     cursor = conn.cursor()
 
     cursor.execute(f'''
-        SELECT * FROM auditoria AS a
+        SELECT a.id, a.marca_temporal, a.fecha, gc.nombre, b.n_interno, ta.nombre, au.nombre FROM auditoria AS a
         JOIN grupo_campos AS gc ON a.id_grupo_campos = gc.id
         JOIN bus AS b ON a.id_bus = b.id
         JOIN tipo_auditoria AS ta ON a.id_tipo_auditoria = ta.id
         JOIN auditor AS au ON a.id_auditor = au.id
-        JOIN campo_auditoria AS ca ON ca.id_auditoria = a.id
-        JOIN respuesta_auditoria AS ra ON ra.id_campo_auditoria = ca.id
         WHERE a.id = (?)
         ''', (auditoria_id,))
     
-    result = cursor.fetchone
+    auditoria = cursor.fetchone()
+
+    cursor.execute(f'''
+        SELECT ca.titulo, ra.valor FROM respuesta_auditoria AS ra
+        JOIN campo_auditoria AS ca ON ra.id_campo_auditoria = ca.id
+        WHERE ra.id_auditoria = (?)
+        ''', (auditoria_id,))
+    
+    respuestas = cursor.fetchall()
+
     conn.close()
 
-    return result
+    return {'auditoria': auditoria, 'respuestas': respuestas}
 
 
 def get_all_auditorias():
@@ -86,6 +104,19 @@ def get_all_auditorias():
     conn.close()
 
     return result
+
+
+def delete_auditoria(auditoria_id):
+    conn = sqlite3.connect("sqlite/arqui.db")
+    cursor = conn.cursor()
+
+    cursor.execute(f'''
+        DELETE FROM auditoria 
+        WHERE id = (?)
+        ''', (auditoria_id,))
+    
+    conn.commit()
+    conn.close()
 
 
 if __name__ == '__main__':
