@@ -2,6 +2,9 @@ import socket
 import json
 import os
 
+
+userId = -1
+
 class Colores:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -96,7 +99,7 @@ def responder_auditoria():
 
     for form_id in form_data["forms"].keys():
         form = form_data["forms"][form_id]
-        print(f"{form["id"]}: {form["nombre"]}")
+      
 
     form_id = input(" > ")
     form = form_data["forms"][form_id]
@@ -180,6 +183,7 @@ if __name__ == '__main__':
 
         if response['status'] == 'correct':
             locked_in = True
+            userId =  response
             break
         else:
             print(response['message'])

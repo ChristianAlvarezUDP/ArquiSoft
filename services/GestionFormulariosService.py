@@ -20,7 +20,7 @@ def service_worker(service_name, host, port):
             if data["comando"] == "agregar":
                 insert_form(data["nombre"], data["preguntas"])
 
-            if data["comando"] == "get_all":
+            if data["comando"] == "get_all_forms":
                 form_data = get_all_forms()
 
                 data = {
@@ -29,6 +29,17 @@ def service_worker(service_name, host, port):
                 }
 
                 response = json.dumps(data)
+                
+            if data["comando"] == "get_all_forms_group":
+                form_data = get_all_forms_group()
+
+                data = {
+                    "status": "correct",
+                    "body": form_data
+                }
+
+                response = json.dumps(data)
+                
 
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
@@ -51,6 +62,21 @@ def insert_form(nombre, preguntas):
     except sqlite3.Error as e:
         print(f"Error inserting question into database: {e}")
 
+
+def get_all_forms_group():
+    try:
+        conn = sqlite3.connect('sqlite/arqui.db')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM grupo_campos")
+        forms = cursor.fetchall()
+
+        conn.close()
+
+        return forms
+    except sqlite3.Error as e:
+        print(f"Error getting form: {e}")
+        return forms
 
 def get_all_forms():
     try:

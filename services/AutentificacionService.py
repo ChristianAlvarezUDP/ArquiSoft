@@ -8,6 +8,8 @@ bus_ip = '127.0.0.1'
 bus_port = 5000
 
 
+
+
 def service_worker(service_name, host, port):
     print(f"{service_name} iniciando en {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -31,7 +33,8 @@ def handle_command(data):
 
         if success:
             return {
-                'status': 'correct'
+                'status': 'correct',
+                'idUsuario': success
             }
         else:
             return {
@@ -64,6 +67,7 @@ def handle_command(data):
 
         return {
             'status': 'correct'
+            
         }
     else:
         return {
@@ -77,7 +81,7 @@ def login(username, password, permisos):
     cursor = conn.cursor()
 
     cursor.execute(f'''
-        SELECT * FROM usuario AS u
+        SELECT id_grupo FROM usuario AS u
         JOIN grupo_usuario AS gu ON u.id_grupo = gu.id
         WHERE username = (?)
         AND password = (?)
@@ -85,7 +89,7 @@ def login(username, password, permisos):
         ''', (username, password, permisos))
 
     result = cursor.fetchall()
-    return len(result) > 0
+    return result
 
 
 def get_users():

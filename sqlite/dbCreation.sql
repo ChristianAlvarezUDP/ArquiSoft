@@ -91,3 +91,41 @@ INSERT INTO grupo_usuario VALUES(3, 'Administrador');
 INSERT INTO usuario VALUES('auditor', 'test', 1);
 INSERT INTO usuario VALUES('digitador', 'test', 2);
 INSERT INTO usuario VALUES('administrador', 'test', 3);
+
+INSERT INTO auditor(rut, nombre) VALUES('11.111.111-1', 'Auditor1');
+INSERT INTO auditor(rut, nombre) VALUES('22.222.222-2', 'Auditor2');
+
+INSERT INTO tipo_auditoria(nombre) VALUES('Seguimiento');
+INSERT INTO tipo_auditoria(nombre) VALUES('No auditable');
+
+INSERT INTO bus (n_interno, patente, anio, chasis, plazas)
+VALUES ('B-001', 'ABC-123', 2020, 'CHS-0001', 50);
+INSERT INTO bus (n_interno, patente, anio, chasis, plazas)
+VALUES ('B-002', 'ABC-321', 2021, 'CHS-0001', 50);
+INSERT INTO bus (n_interno, patente, anio, chasis, plazas)
+VALUES ('B-003', 'ABC-333', 2021, 'CHS-0002', 50);
+
+INSERT INTO grupo_campos(nombre) VALUES('Torniquete');
+INSERT INTO grupo_campos(nombre) VALUES('Ruteros');
+
+INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(1, 'Funcionamiento');
+INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(1, 'Limpieza');
+INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(1, 'Tipo');
+
+INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(2, 'Funcionamiento R1');
+INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(2, 'Limpieza R1');
+INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(2, 'Funcionamiento R2');
+INSERT INTO campo_auditoria(id_grupo, titulo) VALUES(2, 'Limpieza R2');
+
+INSERT INTO auditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor)
+VALUES (CURRENT_TIMESTAMP, '2024-12-06 2:00:00', 1, 1, 1, 1);
+INSERT INTO auditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor)
+VALUES (CURRENT_TIMESTAMP, '2024-12-06 3:00:00', 2, 2, 2, 2);
+
+INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(1, 1, 'Funciona');
+INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(1, 2, 'Limpio');
+INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(1, 3, '3 Brazos');
+INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(2, 4, 'Funciona');
+INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(2, 5, 'Sucio');
+INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(2, 6, 'No Funciona');
+INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) VALUES(2, 7, 'Muy Sucio');

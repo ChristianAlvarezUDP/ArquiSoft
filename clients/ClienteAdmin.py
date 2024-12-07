@@ -99,6 +99,28 @@ def agregar_grupo():
     time.sleep(3)
 
 
+def ver_auditorias():
+    data = {
+        "comando": 'get_all_auditorias'
+    }
+
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = json.loads(response)
+
+    print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % " Auditor " + Colores.ENDC)
+
+    for i, auditoria in enumerate(response['auditorias']):
+        print(auditoria)
+        print(f"{i + 1:<5} | {auditoria[3]:<15} | {auditoria[2]:<20} | {auditoria[4]:<7} | {auditoria[5]:<15} | {auditoria[6]:<20}")
+
+    comando = input("Ver auditoria [ID] o .salir > ")
+
+    if comando == ".quit":
+        return
+    
+    response['auditoria']
+
+
 def logout():
     return "break"
 
@@ -109,16 +131,17 @@ if __name__ == '__main__':
         ("listar usuarios", lambda x: listar_usuarios()),
         ("agregar usuario", lambda x: agregar_usuario()),
         ("agregar grupo", lambda x: agregar_grupo()),
-        #("crear reporte", lambda x: crear_reporte()),
+        ("listar auditorias", lambda x: ver_auditorias()),
+        ("crear reporte", lambda x: crear_reporte()),
         ("logout", lambda x: logout()),
     ]
 
     while True:
         os.system('cls')
-        print("Login")
+        print(Colores.HEADER + "Login como Administrador" + Colores.ENDC)
 
         username = input("Usuario > ")
-        password = input("Password > ")
+        password = input("Contraseña > ")
 
         response = login(username, password)
 
