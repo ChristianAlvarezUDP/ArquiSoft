@@ -27,14 +27,6 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
 
-def GetUserId(username):
-    data = {
-        "comando": "GetUserId",
-        "username": username
-    }
-
-    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
-    return json.loads(response)
 
 def login(username, password):
     data = {
@@ -155,6 +147,18 @@ def listar_buses_auditados():
         print(item)
     return response
 
+def listar_auditorias_por_auditor(id_auditor):
+    
+    data = {
+        'comando': 'verAuditoriasHechas',
+        "body":{
+            'id_auditor': id_auditor,
+        }
+    }
+    response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
+    response = json.loads(response)
+
+
 if __name__ == '__main__':
     locked_in = False
 
@@ -164,6 +168,7 @@ if __name__ == '__main__':
         "responder auditoria": lambda x: responder_auditoria(),
         "auditar bus": lambda x: auditar_bus(),
         "listar buses auditados": lambda x: listar_buses_auditados(),
+        "auditorias por auditor": lambda x: listar_auditorias_por_auditor(id_auditor),
         "logout": lambda x: logout(),
     }
     
@@ -178,34 +183,21 @@ if __name__ == '__main__':
 
         if response['status'] == 'correct':
             locked_in = True
-            userId =   response = GetUserId(username)
+            userId =  response
             break
         else:
             print(response['message'])
-
+            
     while locked_in:
-        os.system('cls')
-        print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
-
-        for i, comando in enumerate(comandos):
-            print(f"{i + 1}.- {comando[0]}")
-
-        try:
-            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
-        except KeyboardInterrupt:
-            quit()
-        except:
+        print("Seleccione comando:")
+        for comando in comandos.keys():
+            print(comando)
+        comando = input("Comando > ").lower()
+        if comando not in comandos:
             continue
-
-        if comando > len(comandos):
-            continue
-        
-        os.system('cls')
-        x = comandos[comando][1](1)
-
+        x = comandos[comando](1)
         if x == "break":
             break
-
 
 
 
