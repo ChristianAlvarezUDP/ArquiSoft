@@ -12,7 +12,7 @@ def request(bus_ip, bus_port, service_name, message):
     
 
 def listar_usuarios():
-    
+    pass
 
 
 def logout():
