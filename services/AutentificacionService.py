@@ -8,6 +8,18 @@ bus_ip = '127.0.0.1'
 bus_port = 5000
 
 
+
+def GetUserId(username):
+    conn = sqlite3.connect("sqlite/arqui.db")
+    cursor = conn.cursor()
+
+    cursor.execute(f'''
+        SELECT id FROM usuario WHERE username = (?)
+        ''', (username,))
+
+    result = cursor.fetchall()
+    return result[0][0]
+
 def service_worker(service_name, host, port):
     print(f"{service_name} iniciando en {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -64,6 +76,13 @@ def handle_command(data):
 
         return {
             'status': 'correct'
+        }
+    elif data['comando'] == 'get_user_id':
+        user_id = GetUserId(data['username'])
+
+        return {
+            'status': 'correct',
+            'user_id': user_id
         }
     else:
         return {
