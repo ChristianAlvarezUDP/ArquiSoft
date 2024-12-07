@@ -157,7 +157,7 @@ def listar_auditorias_por_auditor(id_auditor):
 
 
 if __name__ == '__main__':
-    locked_in = True
+    locked_in = False
 
     comandos = {
         "listar auditorias": lambda x: listar_auditorias(),
