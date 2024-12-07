@@ -172,6 +172,18 @@ def editAuditoria():
         }
     }
 
+def login(username, password):
+    data = {
+        "comando": "login",
+        "username": username,
+        "password": password,
+        "permisos": "Digitador"
+    }
+
+    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+    return json.loads(response)
+
+
 if __name__ == '__main__':
     locked_in = True
 
