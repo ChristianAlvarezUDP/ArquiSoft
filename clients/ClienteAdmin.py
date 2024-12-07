@@ -1,5 +1,20 @@
 import socket
 import json
+import os
+import time
+
+
+class Colores:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 
 def request(bus_ip, bus_port, service_name, message):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
@@ -25,7 +40,7 @@ def login(username, password):
 
 def listar_usuarios():
     data = {
-        "comando": 'get',
+        "comando": 'get_users',
     }
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
