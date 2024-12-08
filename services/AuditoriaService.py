@@ -4,6 +4,10 @@ import threading
 import sqlite3
 import json
 
+def dict_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {key: value for key, value in zip(fields, row)}
+
 def service_worker(service_name, host, port):
     print(f"{service_name} iniciando en {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -38,7 +42,14 @@ def service_worker(service_name, host, port):
                 }
 
                 response = json.dumps(result)
-
+            
+            elif data['comando'] == 'registerAuditoria':
+                registerAuditoria(data['body'])
+                response_data = {
+                    'status': 'correct',
+                    'message': 'Auditoria registrada correctamente'
+                }
+            
             elif data['comando'] == 'delete_auditoria':
                 success = delete_auditoria(data['auditoria_id'])
 
@@ -58,7 +69,6 @@ def service_worker(service_name, host, port):
 
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
-
 
 def get_auditoria(auditoria_id):
     conn = sqlite3.connect("sqlite/arqui.db")
@@ -87,9 +97,9 @@ def get_auditoria(auditoria_id):
 
     return {'auditoria': auditoria, 'respuestas': respuestas}
 
-
 def get_all_auditorias():
     conn = sqlite3.connect("sqlite/arqui.db")
+    conn.row_factory = dict_factory 
     cursor = conn.cursor()
 
     cursor.execute(f'''
@@ -104,6 +114,25 @@ def get_all_auditorias():
     conn.close()
 
     return result
+
+def registerAuditoria(body):
+    conn = sqlite3.connect("sqlite/arqui.db")
+    conn.row_factory = dict_factory 
+    cursor = conn.cursor()
+
+    cursor.execute(f'''
+        INSERT INTO auditoria (marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ''', (body['marca_temporal'], body['fecha'], body['id_grupo_campos'], body['id_bus'], body['id_tipo_auditoria'], body['id_auditor']))
+    
+    id_auditoria = cursor.lastrowid
+    for campo in body['respuestas']:
+        cursor.execute(f'''
+            INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) 
+            VALUES (?, ?, ?)
+            ''', (id_auditoria, campo['id'], campo['titulo'] ))
+    conn.commit()
+    conn.close()
 
 
 def delete_auditoria(auditoria_id):

@@ -34,7 +34,8 @@ def ObtenerAuditoriasPorAuditor(idAuditor):
     }
 
     response = request('127.0.0.1', 5000, 'GenerateReportService.py', json.dumps(data))
-    print(response) 
+    print(json.loads(response)) 
+    
     
 
 def login(username, password):
@@ -141,7 +142,8 @@ def auditar_bus():
     }
 
   response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
-  return
+  print(response)
+  return response
 
 def listar_buses_auditados():
     data = {
@@ -177,9 +179,8 @@ if __name__ == '__main__':
         "responder auditoria": lambda x: responder_auditoria(),
         "auditar bus": lambda x: auditar_bus(),
         "listar buses auditados": lambda x: listar_buses_auditados(),
-        "auditorias por auditor": lambda x: listar_auditorias_por_auditor(id_auditor),
+        "obtener": lambda x: ObtenerAuditoriasPorAuditor(userId),
         "logout": lambda x: logout(),
-        "Obtener": lambda x: ObtenerAuditoriasPorAuditor(userId)
     }
 
     while True:
@@ -209,7 +210,6 @@ if __name__ == '__main__':
         comando = input("Comando > ").lower()
         if comando not in comandos:
             continue
-        x = comandos[comando](1)
         x = comandos[comando](1)
         if x == "break":
             break

@@ -4,6 +4,10 @@ import threading
 import sqlite3
 import json
 
+def dict_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {key: value for key, value in zip(fields, row)}
+
 def service_worker(service_name, host, port):
     print(f"{service_name} starting on {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -22,28 +26,35 @@ def service_worker(service_name, host, port):
 
             if data["comando"] == "get_all_forms":
                 form_data = get_all_forms()
-
-                data = {
+                response = {
                     "status": "correct",
                     "forms": form_data
                 }
 
-                response = json.dumps(data)
+                response = json.dumps(response)
                 
             if data["comando"] == "get_all_forms_group":
                 form_data = get_all_forms_group()
 
-                data = {
+                response = {
                     "status": "correct",
                     "body": form_data
                 }
 
-                response = json.dumps(data)
+                response = json.dumps(response)
+            
+            if data["comando"] == "get_form":
+                form = get_form(data["body"]['id_grupo_campos'])
+                print(form)
                 
-
+                response = {
+                    "status": "correct",
+                    "body": form
+                }
+                response = json.dumps(response)
+                   
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
-
 
 def insert_form(nombre, preguntas):
     try:
@@ -62,10 +73,10 @@ def insert_form(nombre, preguntas):
     except sqlite3.Error as e:
         print(f"Error inserting question into database: {e}")
 
-
 def get_all_forms_group():
     try:
         conn = sqlite3.connect('sqlite/arqui.db')
+        conn.row_factory = dict_factory 
         cursor = conn.cursor()
 
         cursor.execute("SELECT * FROM grupo_campos")
@@ -81,6 +92,7 @@ def get_all_forms_group():
 def get_all_forms():
     try:
         conn = sqlite3.connect('sqlite/arqui.db')
+        conn.row_factory = dict_factory 
         cursor = conn.cursor()
 
         cursor.execute("SELECT * FROM grupo_campos")
@@ -101,18 +113,19 @@ def get_all_forms():
         print(f"Error getting form: {e}")
         return {}
 
-
 def get_form(form_id):
     try:
         conn = sqlite3.connect('sqlite/arqui.db')
+        conn.row_factory = dict_factory 
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM grupo_campos WHERE id = (?)", (form_id))
+        cursor.execute("SELECT * FROM campo_auditoria WHERE id = (?)", (form_id))
         result = cursor.fetchall()
 
-        print(result[0])
+        print(result)
 
         conn.close()
+        return result
     except sqlite3.Error as e:
         print(f"Error getting form: {e}")
 

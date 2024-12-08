@@ -7,25 +7,38 @@ import json
 
 def GenerarReporte(fecha_inicio, fecha_fin):
     return
-
-def AuditoriasPorAuditor(idAuditor):
-    conn = sqlite3.connect("sqlite/arqui.db")
-    cursor = conn.cursor()
-
-    cursor.execute(f'''
-        SELECT a.id, a.marca_temporal, a.fecha, gc.nombre, b.n_interno, ta.nombre, au.nombre
+def get_auditorias_by_auditor(idAuditor):
+    query = '''
+        SELECT a.id, a.marca_temporal, a.fecha, gc.nombre AS grupo_campos_nombre, 
+               b.n_interno AS bus_interno, ta.nombre AS tipo_auditoria_nombre, 
+               au.nombre AS auditor_nombre
         FROM auditoria AS a
         JOIN grupo_campos AS gc ON a.id_grupo_campos = gc.id
         JOIN bus AS b ON a.id_bus = b.id
         JOIN tipo_auditoria AS ta ON a.id_tipo_auditoria = ta.id
         JOIN auditor AS au ON a.id_auditor = au.id
         WHERE a.id_auditor = ?
-        ''', (idAuditor,))
-    
-    result = cursor.fetchall()
-    conn.close()
+    '''
+    try:
+        conn = sqlite3.connect('sqlite/arqui.db')
+        cursor = conn.cursor()
+        cursor.execute(query, (1))
+        result = cursor.fetchall()
 
-    return result
+        # Extract column names from cursor.description
+        columns = [description[0] for description in cursor.description]
+
+        # Map rows to dictionaries using column names
+        auditorias_list = [dict(zip(columns, row)) for row in result]
+    except sqlite3.Error as e:
+        print(f"Error fetching data: {e}")
+        return json.dumps({"error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    # Convert the list of dictionaries to a JSON string and return
+    return json.dumps(auditorias_list)
 
 def service_worker(service_name, host, port):
     print(f"{service_name} starting on {host}:{port}")
@@ -43,7 +56,7 @@ def service_worker(service_name, host, port):
             if data["comando"] == "GenerarReporte":
                 response = GenerarReporte(data["id_form"], data["fecha_inicio"], data["fecha_fin"])
             if data["comando"] == "AuditoriasPorAuditor":
-                response = AuditoriasPorAuditor(data["id_auditor"])
+                response = get_auditorias_by_auditor(data["id_auditor"])
                 if response == []:
                     response = "No se encontraron auditorias"
                 else :
