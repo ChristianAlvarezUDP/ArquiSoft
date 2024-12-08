@@ -4,6 +4,9 @@ import threading
 import sqlite3
 import json
 
+def dict_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {key: value for key, value in zip(fields, row)}
 
 def GenerarReporte(fecha_inicio, fecha_fin):
     return
@@ -21,15 +24,11 @@ def get_auditorias_by_auditor(idAuditor):
     '''
     try:
         conn = sqlite3.connect('sqlite/arqui.db')
+        conn.row_factory = dict_factory
         cursor = conn.cursor()
-        cursor.execute(query, (1))
+        cursor.execute(query, (idAuditor,))
         result = cursor.fetchall()
-
-        # Extract column names from cursor.description
-        columns = [description[0] for description in cursor.description]
-
-        # Map rows to dictionaries using column names
-        auditorias_list = [dict(zip(columns, row)) for row in result]
+        print(result)
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
         return json.dumps({"error": str(e)})
@@ -38,7 +37,7 @@ def get_auditorias_by_auditor(idAuditor):
         conn.close()
 
     # Convert the list of dictionaries to a JSON string and return
-    return json.dumps(auditorias_list)
+    return json.dumps(result)
 
 def service_worker(service_name, host, port):
     print(f"{service_name} starting on {host}:{port}")
@@ -55,6 +54,7 @@ def service_worker(service_name, host, port):
 
             if data["comando"] == "GenerarReporte":
                 response = GenerarReporte(data["id_form"], data["fecha_inicio"], data["fecha_fin"])
+            
             if data["comando"] == "AuditoriasPorAuditor":
                 response = get_auditorias_by_auditor(data["id_auditor"])
                 if response == []:
