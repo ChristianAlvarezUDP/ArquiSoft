@@ -83,30 +83,32 @@ def retrieveCampos(id_grupo_campos):
     
 def retrieveAllAuditorias():
     data = {
-        "comando": 'retrieve',
+        "comando": 'get_all_auditorias',
     }
-    response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:
         print ("No recibe respuesta")
     print(response)
+    return response['auditorias']
     
 def retrieveGruposCampos():
     data = {
-        "comando": 'register'
+        "comando": 'get_all_forms_group',
     }
-    response = request('127.0.0.1', 5000, 'serviceRetrieveGruposCampos.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
     if response:
         response = json.loads(response)
-        return response['body']['nombre']
+        print (response)
+        return response['body']
     else:
         print ("No recibe respuesta")
         return "error"
 
 def addAuditoria(id, marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas):
     data = {
-        "comando": 'add',
+        "comando": 'registerAuditoria',
         "body": {
             "id" : id,
             "marca_temporal": marca_temporal,
@@ -118,7 +120,7 @@ def addAuditoria(id, marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_aud
             "respuestas" : respuestas 
         }
     }
-    response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:
@@ -128,12 +130,12 @@ def addAuditoria(id, marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_aud
 
 def answerCampos(id_grupo_campos):
     data = {
-        "comando": 'retrieve',
+        "comando": 'get_form',
         "body": {
             "id_grupo_campos" : id_grupo_campos
         }
     }
-    response = request('127.0.0.1', 5000, 'serviceRetrieveCampos.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:
@@ -141,15 +143,21 @@ def answerCampos(id_grupo_campos):
         return "error"
     respuestas = []
     for campo in response['body']:
-        print(f"Responda: {campo}")
+        print(f"Responda: {campo['titulo']}")
         respuestaCampo = input(" > ")
-        respuestas.append(respuestaCampo)
+        respuestas.append({
+            "id": campo['id'],
+            "titulo": respuestaCampo
+        })
     return respuestas
 
 #Funciones de la interfaz
 def registerAuditoria():
-    #Cambiar por un FOR
-    print(f"Seleccione id_grupo_campos: {retrieveGruposCampos()}")
+    grupoCampos = retrieveGruposCampos()
+    print(grupoCampos)
+    print(f"Seleccione id_grupo_campos: ")
+    for grupoCampo in grupoCampos:
+        print(f"id: {grupoCampo["id"]}  nombre: {grupoCampo["nombre"]}")
     id_grupo_campos = input(" > ")
     print("Escriba id")
     id = input(" > ")
@@ -253,10 +261,9 @@ def deleteAuditoria():
     print("Escriba id de la auditoria a eliminar")
     idAuditoria = input(" > ")
     packet = {
-        "comando": 'delete',
-        "body": {
-            "id" : idAuditoria
-        }
+        "comando": 'delete_auditoria',
+        "auditoria_id" : idAuditoria
+        
     }
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(packet))
     if response:
@@ -277,10 +284,9 @@ def login(username, password):
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
     return json.loads(response)
 
-
 if __name__ == '__main__':
     #Funciones Necesarias
-    locked_in = False
+    locked_in = True
 
     comandos = [
         ("Registrar Auditoria", lambda x: registerAuditoria()),
@@ -289,7 +295,7 @@ if __name__ == '__main__':
         ("logout", lambda x: logout()),
     ]
 
-    while True:
+    '''while True:
         os.system('cls')
         print("Login")
 
@@ -302,7 +308,7 @@ if __name__ == '__main__':
             locked_in = True
             break
         else:
-            print(response['message'])
+            print(response['message'])'''
 
     while locked_in:
         os.system('cls')
