@@ -177,9 +177,8 @@ if __name__ == '__main__':
         "responder auditoria": lambda x: responder_auditoria(),
         "auditar bus": lambda x: auditar_bus(),
         "listar buses auditados": lambda x: listar_buses_auditados(),
-        "auditorias por auditor": lambda x: listar_auditorias_por_auditor(id_auditor),
+        "Obtener": lambda x: ObtenerAuditoriasPorAuditor(userId),
         "logout": lambda x: logout(),
-        "Obtener": lambda x: ObtenerAuditoriasPorAuditor(userId)
     }
     while True:
         os.system('cls')
@@ -203,7 +202,7 @@ if __name__ == '__main__':
             print(comando)
         comando = input("Comando > ").lower()
         if comando not in comandos:
-        print("Seleccione comando:")
+            print("Seleccione comando:")
         for comando in comandos.keys():
             print(comando)
         comando = input("Comando > ").lower()
