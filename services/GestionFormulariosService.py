@@ -119,7 +119,7 @@ def get_form(form_id):
         conn.row_factory = dict_factory 
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM campo_auditoria WHERE id = (?)", (form_id))
+        cursor.execute("SELECT * FROM campo_auditoria WHERE id = (?)", (form_id,))
         result = cursor.fetchall()
 
         print(result)

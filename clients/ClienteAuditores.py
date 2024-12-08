@@ -16,8 +16,6 @@ class Colores:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
-
 def request(bus_ip, bus_port, service_name, message):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
         client_socket.connect((bus_ip, bus_port))
@@ -36,8 +34,6 @@ def ObtenerAuditoriasPorAuditor(idAuditor):
     response = request('127.0.0.1', 5000, 'GenerateReportService.py', json.dumps(data))
     print(json.loads(response)) 
     
-    
-
 def login(username, password):
     data = {
         "comando": "login",
@@ -47,8 +43,9 @@ def login(username, password):
     }
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
-    return json.loads(response)
-
+    response = json.loads(response)
+    print(response)
+    return response
 
 def listar_auditorias():
     data = {
@@ -56,7 +53,6 @@ def listar_auditorias():
 
     request('127.0.0.1', 5000, 'auth_service.py', json.dumps(data))
     return "hola"
-
 
 def logout():
     return "break"
@@ -90,7 +86,6 @@ def crear_formulario():
         preguntas.append(pregunta)
 
     agregar_formulario(nombre, preguntas)
-
 
 def responder_auditoria():
     print('Responder auditoria')
@@ -169,7 +164,6 @@ def listar_auditorias_por_auditor(id_auditor):
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
 
-
 if __name__ == '__main__':
     locked_in = False
 
@@ -193,7 +187,7 @@ if __name__ == '__main__':
 
         if response['status'] == 'correct':
             locked_in = True
-            userId =  response
+            userId =  response['idUsuario'][0][0]
             break
         else:
             print(response['message'])
