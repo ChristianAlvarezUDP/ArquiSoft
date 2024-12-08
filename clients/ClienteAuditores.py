@@ -167,19 +167,19 @@ def listar_auditorias_por_auditor(id_auditor):
 if __name__ == '__main__':
     locked_in = False
 
-    comandos = {
-        "listar auditorias": lambda x: listar_auditorias(),
-        "agregar formulario": lambda x: crear_formulario(),
-        "responder auditoria": lambda x: responder_auditoria(),
-        "auditar bus": lambda x: auditar_bus(),
-        "listar buses auditados": lambda x: listar_buses_auditados(),
-        "obtener": lambda x: ObtenerAuditoriasPorAuditor(userId),
-        "logout": lambda x: logout(),
-    }
+    comandos = [
+        ("listar auditorias", lambda x: listar_auditorias()),
+        ("agregar formulario", lambda x: crear_formulario()),
+        ("responder auditoria", lambda x: responder_auditoria()),
+        ("auditar bus", lambda x: auditar_bus()),
+        ("listar buses auditados", lambda x: listar_buses_auditados()),
+        ("obtener", lambda x: ObtenerAuditoriasPorAuditor(userId)),
+        ("logout", lambda x: logout()),
+    ]
 
     while True:
         os.system('cls')
-        print(Colores.HEADER + "Login como Administrador" + Colores.ENDC)
+        print(Colores.HEADER + "Login como Auditor" + Colores.ENDC)
 
         username = input("Usuario > ")
         password = input("Contraseña > ")
@@ -192,25 +192,26 @@ if __name__ == '__main__':
             break
         else:
             print(response['message'])
-                        
+
     while locked_in:
-        print("Seleccione comando:")
-        for comando in comandos.keys():
-            print(comando)
-        comando = input("Comando > ").lower()
-        if comando not in comandos:
-            print("Seleccione comando:")
-        for comando in comandos.keys():
-            print(comando)
-        comando = input("Comando > ").lower()
-        if comando not in comandos:
+        os.system('cls')
+        print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
+
+        for i, comando in enumerate(comandos):
+            print(f"{i + 1}.- {comando[0]}")
+
+        try:
+            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
+        except KeyboardInterrupt:
+            quit()
+        except:
             continue
-        x = comandos[comando](1)
+
+        if comando > len(comandos):
+            continue
+        
+        os.system('cls')
+        x = comandos[comando][1](1)
+
         if x == "break":
             break
-
-
-
-
-
-

@@ -128,14 +128,14 @@ def ver_auditorias():
 
         
         for i, auditoria in enumerate(auditorias['auditorias']):
-            print(f"{i + 1:<5} | {auditoria[3]:<15} | {auditoria[2]:<20} | {auditoria[4]:<7} | {auditoria[5]:<15} | {auditoria[6]:<20}")
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
 
         comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
 
         if comando == ".salir":
             return
         
-        auditoria_id = auditorias['auditorias'][int(comando) - 1][0]
+        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
         
         data = {
             "comando": 'get_auditoria',
