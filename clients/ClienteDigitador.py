@@ -38,33 +38,16 @@ def request(bus_ip, bus_port, service_name, message):
         response = client_socket.recv(1024)
 
         return response.decode('utf-8')
-    
-def retrieveAuditoriaAnswersByID(id_auditoria):
-    data = {
-        "comando": 'retrieve',
-        "body": {
-            "id" : id_auditoria
-        }
-    }
-    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-    if response:
-        response = json.loads(response)
-    else:
-        print ("No recibe respuesta")
-    print(response)
 
-def retrieveAuditoriaByID(id):
+def retrieveAuditoriaByID(auditoria_id):
     data = {
-        "comando": 'retrieveAuditoriaByID',
-        "body": {
-            "id" : id
-        }
+        "comando": 'get_auditoria',
+        'auditoria_id': auditoria_id
     }
-    response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
-    if response:
-        response = json.loads(response)
-    else:
-        print ("No recibe respuesta")
+        
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = json.loads(response)
+
     return response
 
 def retrieveCampos(id_grupo_campos):
@@ -231,7 +214,6 @@ def registerAuditoria():
     return response
 
 def editAuditoria(auditoria_id):
-    respuestas = retrieveAuditoriaAnswersByID(auditoria_id)
     datos = retrieveAuditoriaByID(auditoria_id)
     preguntas = retrieveCampos(datos['id_grupo_campos'])
     
@@ -244,14 +226,14 @@ def editAuditoria(auditoria_id):
             "id_bus" : datos['id_bus'],
             "id_tipo_auditoria" : datos['id_tipo_auditoria'],
             "id_auditor" : datos['id_auditor'],
-            "respuestas" : respuestas 
+            "respuestas" : []
         }
     }
     
     while True:
         print(f"ID: {datos['id']}\n Marca Temporal: {datos['marca_temporal']}\n Fecha: {datos['fecha']}\n ID Grupo Campos: {datos['id_grupo_campos']}\n ID Bus: {datos['id_bus']}\n ID Tipo Auditoria: {datos['id_tipo_auditoria']}\n ID Auditor: {datos['id_auditor']}")
         print("Respuestas Formulario:")
-        for respuesta in respuestas:
+        for respuesta in datos:
             print(f"[{respuesta.enumerate()}] Pregunta: {preguntas[respuesta.enumerate()]}")
             print(f"Respuesta: {respuesta}")
         
