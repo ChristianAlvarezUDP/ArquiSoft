@@ -50,7 +50,6 @@ def service_worker(service_name, host, port):
                     'message': 'Auditoria registrada correctamente'
                 }
             
-
             elif data['comando'] == 'delete_auditoria':
                 success = delete_auditoria(data['auditoria_id'])
 

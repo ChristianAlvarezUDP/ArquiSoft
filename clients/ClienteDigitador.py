@@ -83,14 +83,15 @@ def retrieveCampos(id_grupo_campos):
     
 def retrieveAllAuditorias():
     data = {
-        "comando": 'retrieve',
+        "comando": 'get_all_auditorias',
     }
-    response = request('127.0.0.1', 5000, 'auditorias_serviceXDD.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:
         print ("No recibe respuesta")
     print(response)
+    return response['auditorias']
     
 def retrieveGruposCampos():
     data = {
@@ -260,10 +261,9 @@ def deleteAuditoria():
     print("Escriba id de la auditoria a eliminar")
     idAuditoria = input(" > ")
     packet = {
-        "comando": 'delete',
-        "body": {
-            "id" : idAuditoria
-        }
+        "comando": 'delete_auditoria',
+        "auditoria_id" : idAuditoria
+        
     }
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(packet))
     if response:
