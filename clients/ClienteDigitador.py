@@ -1,7 +1,7 @@
 import socket
 import json
 import os
-import os
+import datetime
 
 class Colores:
     HEADER = '\033[95m'
@@ -39,11 +39,11 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
     
-def retrieveAuditoriaAnswersByID():
+def retrieveAuditoriaAnswersByID(id_auditoria):
     data = {
         "comando": 'retrieve',
         "body": {
-            "id" : id
+            "id" : id_auditoria
         }
     }
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
@@ -108,16 +108,15 @@ def ver_auditorias():
         response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
         auditorias = json.loads(response)
 
-        
         for i, auditoria in enumerate(auditorias['auditorias']):
-            print(f"{i + 1:<5} | {auditoria[3]:<15} | {auditoria[2]:<20} | {auditoria[4]:<7} | {auditoria[5]:<15} | {auditoria[6]:<20}")
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
 
         comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
 
         if comando == ".salir":
             return
         
-        auditoria_id = auditorias['auditorias'][int(comando) - 1][0]
+        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
         
         data = {
             "comando": 'get_auditoria',
@@ -142,10 +141,13 @@ def ver_auditorias():
         for respuesta in response['auditoria']['respuestas']:
             print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
 
-        comando = input(Colores.OKCYAN + ".eliminar o Enter > " + Colores.ENDC)
+        comando = input(Colores.OKCYAN + ".eliminar, .modificar o Enter > " + Colores.ENDC)
 
         if comando == ".eliminar":
             eliminar_auditoria(auditoria_id)
+
+        if comando == ".modificar":
+            editAuditoria(auditoria_id)
 
     
 def retrieveGruposCampos():
@@ -155,17 +157,15 @@ def retrieveGruposCampos():
     response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
     if response:
         response = json.loads(response)
-        print (response)
         return response['body']
     else:
         print ("No recibe respuesta")
         return "error"
 
-def addAuditoria(id, marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas):
+def addAuditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas):
     data = {
         "comando": 'registerAuditoria',
         "body": {
-            "id" : id,
             "marca_temporal": marca_temporal,
             "fecha" : fecha,
             "id_grupo_campos" : id_grupo_campos,
@@ -196,10 +196,12 @@ def answerCampos(id_grupo_campos):
     else:
         print ("No recibe respuesta")
         return "error"
+    
+    print("\n" + Colores.HEADER + response['body']['formulario']['nombre'] + Colores.ENDC)
+    
     respuestas = []
-    for campo in response['body']:
-        print(f"Responda: {campo['titulo']}")
-        respuestaCampo = input(" > ")
+    for campo in response['body']['preguntas']:
+        respuestaCampo = input(Colores.OKCYAN + f"{campo['titulo']} > " + Colores.ENDC)
         respuestas.append({
             "id": campo['id'],
             "titulo": respuestaCampo
@@ -209,40 +211,33 @@ def answerCampos(id_grupo_campos):
 #Funciones de la interfaz
 def registerAuditoria():
     grupoCampos = retrieveGruposCampos()
-    print(grupoCampos)
-    print(f"Seleccione id_grupo_campos: ")
-    for grupoCampo in grupoCampos:
-        print(f"id: {grupoCampo["id"]}  nombre: {grupoCampo["nombre"]}")
-    id_grupo_campos = input(" > ")
-    print("Escriba id")
-    id = input(" > ")
-    print("Escriba marca_temporal")
-    marca_temporal = input(" > ")
-    print("Escriba fecha")
-    fecha = input(" > ")
-    print("Escriba id_bus")
-    id_bus = input(" > ")
-    print("Escriba id_tipo_auditoria")
-    id_tipo_auditoria = input(" > ")
-    print("Escriba id_auditor")
-    id_auditor = input(" > ")
+    print(Colores.HEADER + f"Seleccione Formulario: " + Colores.ENDC)
+    for i, grupoCampo in enumerate(grupoCampos):
+        print(f"{i + 1}.-  {grupoCampo["nombre"]}")
+
+    id_grupo_campos = grupoCampos[int(input(" > ")) - 1]["id"] 
+    marca_temporal = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    os.system('cls')
+    print(Colores.HEADER + 'General' + Colores.ENDC)
+
+    fecha = input(Colores.OKCYAN + "Fecha > " + Colores.ENDC)
+    id_bus = input(Colores.OKCYAN + "Bus > " + Colores.ENDC)
+    id_tipo_auditoria = input(Colores.OKCYAN + "Tipo Auditoria > " + Colores.ENDC)
+    id_auditor = input(Colores.OKCYAN + "Auditor > " + Colores.ENDC)
     
     respuestas = answerCampos(id_grupo_campos)
-    response = addAuditoria(id, marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
+    response = addAuditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
     return response
 
-def editAuditoria():
-    print("Escriba id de la auditoria a editar")
-    idAuditoria = input(" > ")
-    
-    respuestas = retrieveAuditoriaAnswersByID(idAuditoria)
-    datos = retrieveAuditoriaByID(idAuditoria)
+def editAuditoria(auditoria_id):
+    respuestas = retrieveAuditoriaAnswersByID(auditoria_id)
+    datos = retrieveAuditoriaByID(auditoria_id)
     preguntas = retrieveCampos(datos['id_grupo_campos'])
     
     response = {
         "comando": 'edit',
         "body": {
-            "id" : id,
             "marca_temporal": datos['marca_temporal'],
             "fecha" : datos['fecha'],
             "id_grupo_campos" : datos['id_grupo_campos'],
@@ -325,12 +320,12 @@ if __name__ == '__main__':
 
     comandos = [
         ("Registrar Auditoria", lambda x: registerAuditoria()),
-        ("Editar Auditoria", lambda x: editAuditoria()),
         ("Ver Auditorias", lambda x: ver_auditorias()),
+        ("Ver Buses", lambda x: ver_buses()),
         ("Logout", lambda x: logout()),
     ]
 
-    '''while True:
+    while True:
         os.system('cls')
         print(Colores.HEADER + "Login como Digitador" + Colores.ENDC)
 
@@ -343,7 +338,7 @@ if __name__ == '__main__':
             locked_in = True
             break
         else:
-            print(response['message'])'''
+            print(response['message'])
 
     while locked_in:
         os.system('cls')

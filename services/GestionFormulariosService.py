@@ -45,8 +45,7 @@ def service_worker(service_name, host, port):
             
             if data["comando"] == "get_form":
                 form = get_form(data["body"]['id_grupo_campos'])
-                print(form)
-                
+
                 response = {
                     "status": "correct",
                     "body": form
@@ -119,13 +118,15 @@ def get_form(form_id):
         conn.row_factory = dict_factory 
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM campo_auditoria WHERE id = (?)", (form_id))
-        result = cursor.fetchall()
+        cursor.execute("SELECT * FROM grupo_campos WHERE id = (?)", (form_id,))
+        form = cursor.fetchone()
 
-        print(result)
+        cursor.execute("SELECT * FROM campo_auditoria WHERE id_grupo = (?)", (form_id,))
+
+        preguntas = cursor.fetchall()
 
         conn.close()
-        return result
+        return {'formulario': form, 'preguntas': preguntas}
     except sqlite3.Error as e:
         print(f"Error getting form: {e}")
 

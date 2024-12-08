@@ -177,7 +177,7 @@ def ver_resumen():
     date_format = '%Y-%m-%d %H:%M:%S'
     auditorias_24h = [auditoria for auditoria in auditorias['auditorias'] if datetime.datetime.now() - datetime.datetime.strptime(auditoria[2], date_format) <= datetime.timedelta(hours=24)]
 
-    print(Colores.HEADER + "Numero de auditorias: "  + Colores.ENDC + str(len(auditorias)))
+    print(Colores.HEADER + "Numero de auditorias: " + Colores.ENDC + str(len(auditorias)))
 
     print(Colores.HEADER + "Numero de auditorias en las ultimas 24 horas: "  + Colores.ENDC + str(len(auditorias_24h)))
     print(Colores.HEADER + "Buses auditados en las ultimas 24 horas: "  + Colores.ENDC)
