@@ -80,18 +80,73 @@ def retrieveCampos(id_grupo_campos):
     else:
         print ("No recibe respuesta")
     return response
+
+
+def eliminar_auditoria(auditoria_id):
+    print("Esta seguro de que desea eliminar?")
+    comando = input('[S] o [N]')
+
+    if comando.lower() == 'n':
+        return
     
-def retrieveAllAuditorias():
     data = {
-        "comando": 'get_all_auditorias',
+        "comando": 'delete_auditoria',
+        "auditoria_id": auditoria_id 
     }
+
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-    if response:
+
+
+def ver_auditorias():
+    while True:
+        data = {
+            "comando": 'get_all_auditorias'
+        }
+
+        os.system('cls')
+        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        auditorias = json.loads(response)
+
+        
+        for i, auditoria in enumerate(auditorias['auditorias']):
+            print(f"{i + 1:<5} | {auditoria[3]:<15} | {auditoria[2]:<20} | {auditoria[4]:<7} | {auditoria[5]:<15} | {auditoria[6]:<20}")
+
+        comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
+
+        if comando == ".salir":
+            return
+        
+        auditoria_id = auditorias['auditorias'][int(comando) - 1][0]
+        
+        data = {
+            "comando": 'get_auditoria',
+            'auditoria_id': auditoria_id
+        }
+        
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
         response = json.loads(response)
-    else:
-        print ("No recibe respuesta")
-    print(response)
-    return response['auditorias']
+        
+        os.system('cls')
+        print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+
+        print(f"""{"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
+{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
+{"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
+{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
+{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+""")
+        
+        print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
+        
+        for respuesta in response['auditoria']['respuestas']:
+            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+
+        comando = input(Colores.OKCYAN + ".eliminar o Enter > " + Colores.ENDC)
+
+        if comando == ".eliminar":
+            eliminar_auditoria(auditoria_id)
+
     
 def retrieveGruposCampos():
     data = {
@@ -253,25 +308,6 @@ def editAuditoria():
             return "break"
         else:
             print("Opción no válida")
-        
-def deleteAuditoria():
-    auditorias = retrieveAllAuditorias()
-    for auditoria in auditorias:
-        print(f'[{auditoria["id"]}]: {auditoria}' )
-    print("Escriba id de la auditoria a eliminar")
-    idAuditoria = input(" > ")
-    packet = {
-        "comando": 'delete_auditoria',
-        "auditoria_id" : idAuditoria
-        
-    }
-    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(packet))
-    if response:
-        response = json.loads(response)
-        return response
-    else:
-        print ("No recibe respuesta")
-        return "error"
 
 def login(username, password):
     data = {
@@ -285,22 +321,21 @@ def login(username, password):
     return json.loads(response)
 
 if __name__ == '__main__':
-    #Funciones Necesarias
-    locked_in = True
+    locked_in = False
 
     comandos = [
         ("Registrar Auditoria", lambda x: registerAuditoria()),
         ("Editar Auditoria", lambda x: editAuditoria()),
-        ("Eliminar Auditoria", lambda x: deleteAuditoria()),
-        ("logout", lambda x: logout()),
+        ("Ver Auditorias", lambda x: ver_auditorias()),
+        ("Logout", lambda x: logout()),
     ]
 
     '''while True:
         os.system('cls')
-        print("Login")
+        print(Colores.HEADER + "Login como Digitador" + Colores.ENDC)
 
         username = input("Usuario > ")
-        password = input("Password > ")
+        password = input("Contraseña > ")
 
         response = login(username, password)
 

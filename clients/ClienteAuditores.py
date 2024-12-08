@@ -176,12 +176,13 @@ if __name__ == '__main__':
         "obtener": lambda x: ObtenerAuditoriasPorAuditor(userId),
         "logout": lambda x: logout(),
     }
+
     while True:
         os.system('cls')
-        print("Login")
+        print(Colores.HEADER + "Login como Administrador" + Colores.ENDC)
 
         username = input("Usuario > ")
-        password = input("Password > ")
+        password = input("Contraseña > ")
 
         response = login(username, password)
 
