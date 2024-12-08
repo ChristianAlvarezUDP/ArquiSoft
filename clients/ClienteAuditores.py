@@ -181,18 +181,18 @@ if __name__ == '__main__':
         "logout": lambda x: logout(),
         "Obtener": lambda x: ObtenerAuditoriasPorAuditor(userId)
     }
+
     while True:
         os.system('cls')
-        print("Login")
+        print(Colores.HEADER + "Login como Administrador" + Colores.ENDC)
 
         username = input("Usuario > ")
-        password = input("Password > ")
+        password = input("Contraseña > ")
 
         response = login(username, password)
 
         if response['status'] == 'correct':
             locked_in = True
-            userId =  response
             break
         else:
             print(response['message'])
@@ -203,7 +203,7 @@ if __name__ == '__main__':
             print(comando)
         comando = input("Comando > ").lower()
         if comando not in comandos:
-        print("Seleccione comando:")
+            print("Seleccione comando:")
         for comando in comandos.keys():
             print(comando)
         comando = input("Comando > ").lower()

@@ -8,8 +8,6 @@ bus_ip = '127.0.0.1'
 bus_port = 5000
 
 
-
-
 def service_worker(service_name, host, port):
     print(f"{service_name} iniciando en {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
