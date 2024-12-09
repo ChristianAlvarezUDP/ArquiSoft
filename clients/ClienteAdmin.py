@@ -99,6 +99,43 @@ def agregar_grupo():
     print(Colores.OKGREEN + 'Grupo agregado con exito!' + Colores.ENDC)
     time.sleep(3)
 
+import json
+
+import json
+
+def crear_formularios():
+    name = input("Nombre del formulario > ")
+    print("Ingrese preguntas. Cuando haya ingresado todas, escriba [s]. Para cancelar o eliminar la pregunta anterior, escriba [c].")
+
+    preguntas = []
+    while True:
+        pregunta = input("Pregunta > ").strip()
+        if pregunta.upper() == "s":
+            if len(preguntas) == 0:
+                print("No se puede enviar un formulario sin preguntas. Por favor, ingrese al menos una pregunta.")
+            else:
+                break
+        elif pregunta.upper() == "s":
+            if preguntas:
+                eliminada = preguntas.pop()
+                print(f"Pregunta eliminada: '{eliminada}'")
+            else:
+                print("No hay preguntas para eliminar.")
+        else:
+            preguntas.append(pregunta)
+    
+    formulario = {
+        "name": name,
+        "preguntas": preguntas
+    }
+
+    with open(f"{name.replace(' ', '_')}_formulario.json", "w", encoding="utf-8") as file:
+        json.dump(formulario, file, indent=4, ensure_ascii=False)
+    
+    print(f"Formulario '{name}' creado y guardado como {name.replace(' ', '_')}_formulario.json.")
+
+
+
 
 def eliminar_auditoria(auditoria_id):
     print("Esta seguro de que desea eliminar?")
