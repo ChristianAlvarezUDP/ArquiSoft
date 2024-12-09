@@ -1,0 +1,14 @@
+Digitador:
+- Editar auditoria
+- ver buses
+- 
+
+Auditor:
+- registrar auditoria (error)
+- obtener auditoria por auditor y normal
+- 
+
+Admin:
+- crear formulario
+- ver resumen
+- 
