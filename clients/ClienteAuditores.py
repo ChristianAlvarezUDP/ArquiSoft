@@ -25,6 +25,9 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
     
+def pause():
+    input("\nPresiona Enter para continuar...")
+
 def ObtenerAuditoriasPorAuditor(idAuditor):
     data = {
         'comando': 'AuditoriasPorAuditor',
@@ -32,8 +35,19 @@ def ObtenerAuditoriasPorAuditor(idAuditor):
     }
 
     response = request('127.0.0.1', 5000, 'GenerateReportService.py', json.dumps(data))
-    print(json.loads(response)) 
-    
+    if not response or response.strip() == "":
+        print("La respuesta está vacía o no es válida")
+        pause()
+        return
+
+    try:
+        parsed_response = json.loads(response)
+        print(parsed_response)
+    except json.JSONDecodeError as e:
+        print(f"Error al decodificar JSON: {e}")
+        print(f"Respuesta recibida: {response}")
+    pause()
+
 def login(username, password):
     data = {
         "comando": "login",
@@ -44,18 +58,17 @@ def login(username, password):
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
     response = json.loads(response)
-    print(response)
+    pause()
     return response
 
 def listar_auditorias():
     data = {
+        'comando': 'get_all_auditorias',
     }
 
-    request('127.0.0.1', 5000, 'auth_service.py', json.dumps(data))
-    return "hola"
-
-def logout():
-    return "break"
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    print(response)
+    pause()
 
 def agregar_formulario(nombre, preguntas):
     data = {
@@ -66,7 +79,8 @@ def agregar_formulario(nombre, preguntas):
 
     response = request('127.0.0.1', 5000, 'forms_service.py', json.dumps(data))
     response = json.loads(response)
-
+    print(response)
+    pause()
     return response
 
 def crear_formulario():
@@ -84,7 +98,10 @@ def crear_formulario():
             break
 
         preguntas.append(pregunta)
-
+    if len(preguntas) == 0:
+        print("No se puede crear un formulario sin preguntas")
+        pause()
+        return
     agregar_formulario(nombre, preguntas)
 
 def responder_auditoria():
@@ -105,7 +122,6 @@ def responder_auditoria():
     for form_id in form_data["forms"].keys():
         form = form_data["forms"][form_id]
       
-
     form_id = input(" > ")
     form = form_data["forms"][form_id]
     respuestas = []
@@ -123,47 +139,49 @@ def responder_auditoria():
     }
 
     response = request('127.0.0.1', 5000, 'auditorias_service.py', json.dumps(data))
-    print()
+    print(response)
+    pause()
 
 def auditar_bus():
+    selectedBus = input("Escriba la id del bus")
 
-  selectedBus = input("Escriba la id del bus")
-
-  data = {
+    data = {
         'comando': 'auditarBus',
         "body": {
             "selectedBus": selectedBus,
         }
     }
 
-  response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
-  print(response)
-  return response
+    response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
+    print(response)
+    pause()
+    return response
 
 def listar_buses_auditados():
     data = {
         'comando': 'listarBusesAuditados',
-        "body": {
-        }
+        "body": {}
     }
 
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
     for item in response:
         print(item)
+    pause()
     return response
 
 def listar_auditorias_por_auditor(id_auditor):
-    
     data = {
         'comando': 'verAuditoriasHechas',
-        "body":{
+        "body": {
             'id_auditor': id_auditor,
         }
     }
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
-
+    print(response)
+    pause()
+    
 if __name__ == '__main__':
     locked_in = False
 
@@ -189,6 +207,7 @@ if __name__ == '__main__':
         if response['status'] == 'correct':
             locked_in = True
             userId =  response['idUsuario'][0][0]
+            
             break
         else:
             print(response['message'])
@@ -196,7 +215,6 @@ if __name__ == '__main__':
     while locked_in:
         os.system('cls')
         print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
-
         for i, comando in enumerate(comandos):
             print(f"{i + 1}.- {comando[0]}")
 
