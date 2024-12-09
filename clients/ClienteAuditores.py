@@ -1,6 +1,7 @@
 import socket
 import json
 import os
+from tabulate import tabulate
 
 
 userId = -1
@@ -17,13 +18,20 @@ class Colores:
     UNDERLINE = '\033[4m'
 
 def request(bus_ip, bus_port, service_name, message):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect((bus_ip, bus_port))
-        request = f"{service_name}:{message}"
-        client_socket.sendall(request.encode('utf-8'))
-        response = client_socket.recv(1024)
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+            client_socket.connect((bus_ip, bus_port))
+            request = f"{service_name}:{message}"
+            client_socket.sendall(request.encode('utf-8'))
+            response = client_socket.recv(1024)
+            return response.decode('utf-8')
+    except ConnectionRefusedError:
+        return json.dumps({"status": "error", "message": "El servidor no está disponible."})
+    except socket.timeout:
+        return json.dumps({"status": "error", "message": "El servidor no respondió a tiempo."})
+    except Exception as e:
+        return json.dumps({"status": "error", "message": f"Error inesperado: {str(e)}"})
 
-        return response.decode('utf-8')
     
 def pause():
     input("\nPresiona Enter para continuar...")
@@ -42,7 +50,9 @@ def ObtenerAuditoriasPorAuditor(idAuditor):
 
     try:
         parsed_response = json.loads(response)
-        print(parsed_response)
+        table = tabulate(parsed_response, headers="keys", tablefmt="plain")
+        print(table)
+
     except json.JSONDecodeError as e:
         print(f"Error al decodificar JSON: {e}")
         print(f"Respuesta recibida: {response}")
@@ -56,18 +66,30 @@ def login(username, password):
         "permisos": "Auditoria"
     }
 
-    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
-    response = json.loads(response)
+    try:
+        response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
+        response = json.loads(response)
+        return response
+    except json.JSONDecodeError:
+        return {"status": "error", "message": "Respuesta del servidor no válida."}
+    except Exception as e:
+        return {"status": "error", "message": f"Error inesperado: {str(e)}"}
+    
+def logout():
+    global userId, locked_in
+    print(Colores.WARNING + "Cerrando sesión..." + Colores.ENDC)
+    userId = -1
+    locked_in = False
     pause()
-    return response
 
 def listar_auditorias():
     data = {
         'comando': 'get_all_auditorias',
     }
 
-    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-    print(response)
+    response = json.loads(request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data)))['auditorias']
+    table = tabulate(response, headers="keys", tablefmt="plain")
+    print(table)
     pause()
 
 def agregar_formulario(nombre, preguntas):
@@ -165,9 +187,10 @@ def listar_buses_auditados():
 
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
-    for item in response:
-        print(item)
+    table = tabulate(response, headers="keys", tablefmt="grid")
+    print(table)
     pause()
+    
     return response
 
 def listar_auditorias_por_auditor(id_auditor):
@@ -179,7 +202,9 @@ def listar_auditorias_por_auditor(id_auditor):
     }
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
-    print(response)
+    table = tabulate(response, headers="keys", tablefmt="grid")
+
+    print(table)
     pause()
     
 if __name__ == '__main__':
@@ -203,7 +228,7 @@ if __name__ == '__main__':
         password = input("Contraseña > ")
 
         response = login(username, password)
-
+        
         if response['status'] == 'correct':
             locked_in = True
             userId =  response['idUsuario'][0][0]
