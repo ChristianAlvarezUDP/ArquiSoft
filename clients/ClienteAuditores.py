@@ -126,8 +126,7 @@ def responder_auditoria():
     print()
 
 def auditar_bus():
-
-  selectedBus = input("Escriba la id del bus")
+  selectedBus = input(Colores.OKCYAN + "Escriba la id del bus > " + Colores.ENDC)
 
   data = {
         'comando': 'auditarBus',
@@ -149,8 +148,12 @@ def listar_buses_auditados():
 
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
+
+    print(Colores.HEADER + "Buses auditados:" + Colores.ENDC)
     for item in response:
-        print(item)
+        print(item['n_interno'])
+
+    input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
     return response
 
 def listar_auditorias_por_auditor(id_auditor):
@@ -164,18 +167,58 @@ def listar_auditorias_por_auditor(id_auditor):
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
 
+def ver_auditorias():
+    while True:
+        data = {
+            "comando": 'get_all_auditorias'
+        }
+
+        os.system('cls')
+        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        auditorias = json.loads(response)
+
+        
+        for i, auditoria in enumerate(auditorias['auditorias']):
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
+
+        comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
+
+        if comando == ".salir":
+            return
+        
+        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
+        
+        data = {
+            "comando": 'get_auditoria',
+            'auditoria_id': auditoria_id
+        }
+        
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        response = json.loads(response)
+        
+        os.system('cls')
+        print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+
+        print(f"""{"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
+{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
+{"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
+{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
+{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+""")
+        
+        print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
+        
+        for respuesta in response['auditoria']['respuestas']:
+            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+
+        input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
+
+
 if __name__ == '__main__':
     locked_in = False
 
-    comandos = [
-        ("listar auditorias", lambda x: listar_auditorias()),
-        ("agregar formulario", lambda x: crear_formulario()),
-        ("responder auditoria", lambda x: responder_auditoria()),
-        ("auditar bus", lambda x: auditar_bus()),
-        ("listar buses auditados", lambda x: listar_buses_auditados()),
-        ("obtener", lambda x: ObtenerAuditoriasPorAuditor(userId)),
-        ("logout", lambda x: logout()),
-    ]
+    
 
     while True:
         os.system('cls')
@@ -192,6 +235,13 @@ if __name__ == '__main__':
             break
         else:
             print(response['message'])
+
+    comandos = [
+        ("Auditar bus", lambda x: auditar_bus()),
+        ("Listar buses auditados", lambda x: listar_buses_auditados()),
+        ("Ver Auditorias", lambda x: ver_auditorias(userId)),
+        ("Logout", lambda x: logout()),
+    ]
 
     while locked_in:
         os.system('cls')

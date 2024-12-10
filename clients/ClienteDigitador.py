@@ -213,6 +213,7 @@ def registerAuditoria():
     response = addAuditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
     return response
 
+
 def editAuditoria(auditoria_id):
     datos = retrieveAuditoriaByID(auditoria_id)
     preguntas = retrieveCampos(datos['id_grupo_campos'])
@@ -285,6 +286,7 @@ def editAuditoria(auditoria_id):
             return "break"
         else:
             print("Opción no válida")
+
 
 def login(username, password):
     data = {
