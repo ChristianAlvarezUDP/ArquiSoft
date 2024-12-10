@@ -1,21 +1,12 @@
 import socket
 import json
 import os
+from utils import Colores, input_int
 from tabulate import tabulate
 
 
 userId = -1
 
-class Colores:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 def request(bus_ip, bus_port, service_name, message):
     try:
@@ -113,10 +104,10 @@ def crear_formulario():
 
     preguntas = []
     while True:
-        print("Escriba pregunta o 'terminar'")
+        print("Escriba pregunta o .terminar")
         pregunta = input(" > ")
 
-        if pregunta == "terminar":
+        if pregunta == ".terminar":
             break
 
         preguntas.append(pregunta)
@@ -200,28 +191,20 @@ def listar_buses_auditados():
     
     return response
 
-def listar_auditorias_por_auditor(id_auditor):
-    data = {
-        'comando': 'verAuditoriasHechas',
-        "body": {
-            'id_auditor': id_auditor,
-        }
-    }
-    response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
-    response = json.loads(response)
-    table = tabulate(response, headers="keys", tablefmt="grid")
-
-def ver_auditorias():
+def ver_auditorias(id_auditor):
     while True:
         data = {
-            "comando": 'get_all_auditorias'
+            'comando': 'verAuditoriasHechas',
+            "body": {
+                'id_auditor': id_auditor,
+            }
         }
 
-        os.system('cls')
-        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
         response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
         auditorias = json.loads(response)
 
+        os.system('cls')
+        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
         
         for i, auditoria in enumerate(auditorias['auditorias']):
             print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
@@ -231,7 +214,12 @@ def ver_auditorias():
         if comando == ".salir":
             return
         
-        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
+        try:
+            auditoria_index = int(comando) - 1
+        except:
+            continue
+        
+        auditoria_id = auditorias['auditorias'][auditoria_index]['id']
         
         data = {
             "comando": 'get_auditoria',
@@ -293,11 +281,9 @@ if __name__ == '__main__':
             print(f"{i + 1}.- {comando[0]}")
 
         try:
-            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
+            comando = input_int(Colores.OKGREEN + "Comando > " + Colores.ENDC) - 1
         except KeyboardInterrupt:
             quit()
-        except:
-            continue
 
         if comando > len(comandos):
             continue
