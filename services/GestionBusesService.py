@@ -63,7 +63,8 @@ def auditarBus(id):
 def listarBusesAuditados():
     query = """
     SELECT * 
-    FROM buses_auditados 
+    FROM buses_auditados AS ba
+    JOIN bus AS b ON ba.bus_id = b.id
     WHERE fecha_auditado BETWEEN datetime('now', '-1 day') AND datetime('now');
     """
     try:
