@@ -51,8 +51,9 @@ def service_worker(service_name, host, port):
                     "body": form
                 }
                 response = json.dumps(response)
+
             if data["comando"] == "insert_form":
-                insert_form(data[name], data[preguntas])
+                insert_form(data['name'], data['preguntas'])
                    
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
@@ -62,7 +63,7 @@ def insert_form(nombre, preguntas):
         conn = sqlite3.connect('sqlite/arqui.db')
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO grupo_campos (nombre) VALUES (?)", (nombre))
+        cursor.execute("INSERT INTO grupo_campos (nombre) VALUES (?)", (nombre,))
         group_id = cursor.lastrowid
 
         for pregunta in preguntas:

@@ -130,7 +130,7 @@ def crear_formularios():
         "preguntas": preguntas
     }
 
-    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
 
     
     print(f"Formulario '{name}' creado y guardado como {name.replace(' ', '_')}_formulario.json.")
