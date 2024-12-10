@@ -28,7 +28,7 @@ def get_auditorias_by_auditor(idAuditor):
         cursor = conn.cursor()
         cursor.execute(query, (idAuditor,))
         result = cursor.fetchall()
-        print(result)
+    
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
         return json.dumps({"error": str(e)})
@@ -36,7 +36,6 @@ def get_auditorias_by_auditor(idAuditor):
         cursor.close()
         conn.close()
 
-    # Convert the list of dictionaries to a JSON string and return
     return json.dumps(result)
 
 def service_worker(service_name, host, port):
@@ -58,10 +57,7 @@ def service_worker(service_name, host, port):
             if data["comando"] == "AuditoriasPorAuditor":
                 response = get_auditorias_by_auditor(data["id_auditor"])
                 if response == []:
-                    response = "No se encontraron auditorias"
-                else :
-                    response = json.dumps(response)
-                    
+                    response = "No se encontraron auditorias"        
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
 
