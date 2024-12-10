@@ -52,7 +52,7 @@ def service_worker(service_name, host, port):
                 }
                 response = json.dumps(response)
             if data["comando"] == "insert_form":
-                insert_form(data[name], data[preguntas])
+                insert_form(data["name"], data["preguntas"])
                    
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
