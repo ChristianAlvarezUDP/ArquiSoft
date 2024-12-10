@@ -101,39 +101,38 @@ def agregar_grupo():
 
 import json
 
-import json
-
 def crear_formularios():
     name = input("Nombre del formulario > ")
-    print("Ingrese preguntas. Cuando haya ingresado todas, escriba [s]. Para cancelar o eliminar la pregunta anterior, escriba [c].")
+    print("Ingrese preguntas. Cuando haya ingresado todas, escriba [S]. Para cancelar o eliminar la pregunta anterior, escriba [C].")
 
     preguntas = []
     while True:
         pregunta = input("Pregunta > ").strip()
-        if pregunta.upper() == "s":
-            if len(preguntas) == 0:
-                print("No se puede enviar un formulario sin preguntas. Por favor, ingrese al menos una pregunta.")
-            else:
-                break
-        elif pregunta.upper() == "s":
+        if pregunta.upper() == "S":
+            # Finalizar la creación de preguntas
+            break
+        elif pregunta.upper() == "C":
+           
             if preguntas:
                 eliminada = preguntas.pop()
                 print(f"Pregunta eliminada: '{eliminada}'")
             else:
-                print("No hay preguntas para eliminar.")
+                print("Cancelado")
+                break
         else:
             preguntas.append(pregunta)
     
-    formulario = {
+    
+    data = {
+        "comando" : "insert_form",
         "name": name,
         "preguntas": preguntas
     }
 
-    with open(f"{name.replace(' ', '_')}_formulario.json", "w", encoding="utf-8") as file:
-        json.dump(formulario, file, indent=4, ensure_ascii=False)
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+
     
     print(f"Formulario '{name}' creado y guardado como {name.replace(' ', '_')}_formulario.json.")
-
 
 
 
