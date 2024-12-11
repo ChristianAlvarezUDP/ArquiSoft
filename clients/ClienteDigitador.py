@@ -26,7 +26,6 @@ def get_auditoria(auditoria_id):
         
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
     response = json.loads(response)
-    print(response) 
     return response
 
 def get_formulario(id_grupo_campos):
@@ -146,7 +145,6 @@ def addAuditoria(marca_temporal, id_grupo_campos, id_bus, id_tipo_auditoria, id_
         response = json.loads(response)
     else:
         print ("No recibe respuesta")
-    print(response)
     return response
 
 def answerCampos(id_grupo_campos):
@@ -197,25 +195,46 @@ def registerAuditoria():
     response = addAuditoria(marca_temporal, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
     return response
 
-
-def editAuditoria(auditoria_id):
-    datos = get_auditoria(auditoria_id)
-    preguntas = get_formulario(datos['id_grupo_campos'])
+def editAuditoria(datos):
+    
+    data = {
+        "comando": 'get_auditoriaIDs',
+        'auditoria_id': datos['auditoria']['auditoria'][0]
+    }
+    
+    auditoriaIDs = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    auditoriaIDs = json.loads(auditoriaIDs)
+    
+    auditoriaIDs = auditoriaIDs['auditoriaIDs'][0]
     
     response = {
         "comando": 'editAuditoria',
         "body": {
-            "marca_temporal": datos['auditoria']['auditoria'][1],
-            "fecha" : datos['auditoria']['auditoria'][2],
-            "id_grupo_campos" : datos['auditoria']['auditoria'][3],
-            "id_bus" : datos['auditoria']['auditoria'][4],
-            "id_tipo_auditoria" : datos['auditoria']['auditoria'][5],
-            "id_auditor" : datos['auditoria']['auditoria'][6],
+            "auditoria_id": auditoriaIDs['id'],
+            "marca_temporal": auditoriaIDs['marca_temporal'],
+            "fecha" : auditoriaIDs['fecha'],
+            "id_grupo_campos" : auditoriaIDs['id_grupo_campos'],
+            "id_bus" : auditoriaIDs['id_bus'],
+            "id_tipo_auditoria" : auditoriaIDs['id_tipo_auditoria'],
+            "id_auditor" : auditoriaIDs['id_auditor'],
             "respuestas" : datos['auditoria']['respuestas']
         }
     }
     
     while True:
+        
+        print(f"""
+            {"%-20s" % 'Marca Temporal'}: {response['body']['marca_temporal']}
+            {"%-20s" % 'Fecha'}: {response['body']['fecha']}
+            {"%-20s" % 'ID Bus'}: {response['body']['id_bus']}
+            {"%-20s" % 'ID Tipo Auditoria'}: {response['body']['id_tipo_auditoria']}
+            {"%-20s" % 'ID Auditor'}: {response['body']['id_auditor']}
+        """)
+        print(Colores.HEADER + "Grupo " + datos['auditoria']['auditoria'][3] + Colores.ENDC)
+            
+        for respuesta in datos['auditoria']['respuestas']:
+            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+        
         print("Seleccione el campo a editar:")
         print("1. Marca Temporal")
         print("4. Bus")
@@ -247,11 +266,11 @@ def editAuditoria(auditoria_id):
             preguntaEditar = input(" > ")    
             print("Escriba nueva respuesta")
             preguntaEditada = input(" > ")
-            response["body"]["respuestas"][preguntaEditar - 1][1] = preguntaEditada
+            response["body"]["respuestas"][int(preguntaEditar) - 1][1] = preguntaEditada
         elif opcion == 8:
-            response = request('127.0.0.1', 5000, 'serviceRetrieveCampos.py', json.dumps(response))
-            if response:
-                response = json.loads(response)
+            result = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(response))
+            if result:
+                result = json.loads(result)
             else:
                 print ("No recibe respuesta")
                 return "error"
@@ -299,6 +318,7 @@ def ver_auditorias():
         response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
         response = json.loads(response)
         os.system('cls')
+        print(response)
         print(Colores.HEADER + "Auditoria" + Colores.ENDC)
 
         print(f"""
@@ -310,8 +330,6 @@ def ver_auditorias():
         """)
         
         print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
-        
-        print(response)
         
         for respuesta in response['auditoria']['respuestas']:
             print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")

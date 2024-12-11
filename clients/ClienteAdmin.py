@@ -80,15 +80,27 @@ def agregar_grupo():
 import json
 
 def crear_formularios():
-    name = input("Nombre del formulario > ")
+    name = input("Nombre del formulario > ").strip()
+    if not name:
+        print("Debe ingresar un nombre para el formulario.")
+        return
+
     print("Ingrese preguntas. Cuando haya ingresado todas, escriba [S]. Para cancelar o eliminar la pregunta anterior, escriba [C].")
 
     preguntas = []
     while True:
         pregunta = input("Pregunta > ").strip()
+
+        if not pregunta:  # Si la entrada está vacía
+            print("Ingrese pregunta")
+            continue
+
         if pregunta.upper() == "S":
-            # Finalizar la creación de preguntas
+            if not preguntas:  # Asegura que al menos haya una pregunta antes de salir
+                print("Debe ingresar al menos una pregunta antes de finalizar.")
+                continue
             break
+
         elif pregunta.upper() == "C":
            
             if preguntas:
@@ -99,17 +111,18 @@ def crear_formularios():
                 break
         else:
             preguntas.append(pregunta)
-    
-    
+
     data = {
-        "comando" : "insert_form",
+        "comando": "insert_form",
         "name": name,
         "preguntas": preguntas
     }
 
-    response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
+    if preguntas:
+        response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
+    else:
+        print("Vuelta al menu")
 
-    
     print(f"Formulario '{name}' creado y guardado como {name.replace(' ', '_')}_formulario.json.")
 
 
