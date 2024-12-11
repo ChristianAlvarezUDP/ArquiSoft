@@ -54,7 +54,8 @@ def service_worker(service_name, host, port):
 
             if data["comando"] == "insert_form":
                 insert_form(data['name'], data['preguntas'])
-                   
+            
+            print(f"{service_name} responde: {response}")
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
 
@@ -103,10 +104,10 @@ def get_all_forms():
         form_data = {}
 
         for form in forms:
-            cursor.execute("SELECT * FROM campo_auditoria WHERE id_grupo = (?)", (form[0],))
-            questions = [{"id": question[0], "titulo": question[2]} for question in cursor.fetchall()]
+            cursor.execute("SELECT * FROM campo_auditoria WHERE id_grupo = (?)", (form['id'],))
+            questions = cursor.fetchall()
 
-            form_data[form[0]] = {"id": form[0], "nombre": form[1], "preguntas": questions}
+            form_data[form['id']] = {"id": form['id'], "nombre": form['nombre'], "preguntas": questions}
 
         conn.close()
 
