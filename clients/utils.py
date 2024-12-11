@@ -1,6 +1,5 @@
 import socket
-import struct
-import time
+import json
 
 class Colores:
     HEADER = '\033[95m'
