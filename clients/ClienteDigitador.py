@@ -103,7 +103,7 @@ def addAuditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditor
             "respuestas" : respuestas 
         }
     }
-    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'GestionFormularioService.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:

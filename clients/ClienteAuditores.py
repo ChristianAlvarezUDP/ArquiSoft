@@ -1,21 +1,12 @@
 import socket
 import json
 import os
+from utils import Colores, input_int
 from tabulate import tabulate
 
 
 userId = -1
 
-class Colores:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 def request(bus_ip, bus_port, service_name, message):
     try:
@@ -113,10 +104,10 @@ def crear_formulario():
 
     preguntas = []
     while True:
-        print("Escriba pregunta o 'terminar'")
+        print("Escriba pregunta o .terminar")
         pregunta = input(" > ")
 
-        if pregunta == "terminar":
+        if pregunta == ".terminar":
             break
 
         preguntas.append(pregunta)
@@ -165,7 +156,7 @@ def responder_auditoria():
     pause()
 
 def auditar_bus():
-    selectedBus = input("Escriba la id del bus")
+    selectedBus = input(Colores.OKCYAN + "Escriba la id del bus > " + Colores.ENDC)
 
     data = {
         'comando': 'auditarBus',
@@ -187,38 +178,77 @@ def listar_buses_auditados():
 
     response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
     response = json.loads(response)
+
+    print(Colores.HEADER + "Buses auditados:" + Colores.ENDC)
+    for item in response:
+        print(item['n_interno'])
+
+    
     table = tabulate(response, headers="keys", tablefmt="grid")
     print(table)
-    pause()
+
+    input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
     
     return response
 
-def listar_auditorias_por_auditor(id_auditor):
-    data = {
-        'comando': 'verAuditoriasHechas',
-        "body": {
-            'id_auditor': id_auditor,
+def ver_auditorias(id_auditor):
+    while True:
+        data = {
+            'comando': 'verAuditoriasHechas',
+            "body": {
+                'id_auditor': id_auditor,
+            }
         }
-    }
-    response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
-    response = json.loads(response)
-    table = tabulate(response, headers="keys", tablefmt="grid")
 
-    print(table)
-    pause()
-    
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        auditorias = json.loads(response)
+
+        os.system('cls')
+        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
+        
+        for i, auditoria in enumerate(auditorias['auditorias']):
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
+
+        comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
+
+        if comando == ".salir":
+            return
+        
+        try:
+            auditoria_index = int(comando) - 1
+        except:
+            continue
+        
+        auditoria_id = auditorias['auditorias'][auditoria_index]['id']
+        
+        data = {
+            "comando": 'get_auditoria',
+            'auditoria_id': auditoria_id
+        }
+        
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        response = json.loads(response)
+        
+        os.system('cls')
+        print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+
+        print(f"""{"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
+{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
+{"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
+{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
+{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+""")
+        
+        print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
+        
+        for respuesta in response['auditoria']['respuestas']:
+            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+
+        input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
+
+
 if __name__ == '__main__':
     locked_in = False
-
-    comandos = [
-        ("listar auditorias", lambda x: listar_auditorias()),
-        ("agregar formulario", lambda x: crear_formulario()),
-        ("responder auditoria", lambda x: responder_auditoria()),
-        ("auditar bus", lambda x: auditar_bus()),
-        ("listar buses auditados", lambda x: listar_buses_auditados()),
-        ("obtener", lambda x: ObtenerAuditoriasPorAuditor(userId)),
-        ("logout", lambda x: logout()),
-    ]
 
     while True:
         os.system('cls')
@@ -237,6 +267,13 @@ if __name__ == '__main__':
         else:
             print(response['message'])
 
+    comandos = [
+        ("Auditar bus", lambda x: auditar_bus()),
+        ("Listar buses auditados", lambda x: listar_buses_auditados()),
+        ("Ver Auditorias", lambda x: ver_auditorias(userId)),
+        ("Logout", lambda x: logout()),
+    ]
+
     while locked_in:
         os.system('cls')
         print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
@@ -244,11 +281,9 @@ if __name__ == '__main__':
             print(f"{i + 1}.- {comando[0]}")
 
         try:
-            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
+            comando = input_int(Colores.OKGREEN + "Comando > " + Colores.ENDC) - 1
         except KeyboardInterrupt:
             quit()
-        except:
-            continue
 
         if comando > len(comandos):
             continue
