@@ -129,17 +129,18 @@ def crear_formularios():
 
 def eliminar_auditoria(auditoria_id):
     print("Esta seguro de que desea eliminar?")
-    comando = input('[S] o [N]')
+    comando = input(Colores.OKCYAN + '[S] o [N] > ' + Colores.ENDC)
 
     if comando.lower() == 'n':
         return
     
-    data = {
-        "comando": 'delete_auditoria',
-        "auditoria_id": auditoria_id 
-    }
+    if comando.lower() == 's':
+        data = {
+            "comando": 'delete_auditoria',
+            "auditoria_id": auditoria_id 
+        }
 
-    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
 
 
 ## Auditorias
@@ -225,25 +226,83 @@ def ver_auditoria(index, auditoria_id):
         eliminar_auditoria(auditoria_id)
 
     if comando == ".modificar":
-        editar_auditoria(auditoria_id)
+        editAuditoria(auditoria_id)
 
 
-def editar_auditoria(auditoria_id):
-    datos = get_auditoria()
-    preguntas = get_formulario(datos['id_grupo_campos'])
+def editAuditoria(auditoria_id):
+    data = {
+        "comando": 'get_auditoria',
+        'auditoria_id': auditoria_id
+    }
     
-    response = {
-        "comando": 'edit',
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = json.loads(response)
+    
+    auditoria = response['auditoria']['auditoria']
+    
+    new_data = {
+        "comando": 'editAuditoria',
         "body": {
-            "marca_temporal": datos['marca_temporal'],
-            "fecha" : datos['fecha'],
-            "id_grupo_campos" : datos['id_grupo_campos'],
-            "id_bus" : datos['id_bus'],
-            "id_tipo_auditoria" : datos['id_tipo_auditoria'],
-            "id_auditor" : datos['id_auditor'],
-            "respuestas" : []
+            "auditoria_id": auditoria['id'],
+            "marca_temporal": auditoria['marca_temporal'],
+            "fecha" : auditoria['fecha'],
+            "id_grupo_campos" : auditoria['id_grupo_campos'],
+            "id_bus" : auditoria['id_bus'],
+            "id_tipo_auditoria" : auditoria['id_tipo_auditoria'],
+            "id_auditor" : auditoria['id_auditor'],
+            "respuestas" : response['auditoria']['respuestas']
         }
     }
+    
+    while True:
+        os.system('cls')
+        print(Colores.HEADER + 'Editar auditoria' + Colores.ENDC +
+f"""
+--- {"%-20s" % 'Fecha'}: {new_data['body']['marca_temporal']}
+1.- {"%-20s" % 'ID Bus'}: {new_data['body']['id_bus']}
+2.- {"%-20s" % 'ID Tipo Auditoria'}: {new_data['body']['id_tipo_auditoria']}
+3.- {"%-20s" % 'ID Auditor'}: {new_data['body']['id_auditor']}
+        """)
+        print(Colores.HEADER + "Grupo " + auditoria['formulario'] + Colores.ENDC)
+            
+        for i, respuesta in enumerate(new_data['body']['respuestas'], start=4):
+            print(f"{i}.- {respuesta['titulo']:<20}: {respuesta['valor']:<40}")
+
+        opcion = input(Colores.OKCYAN + "[Numero] Campo a editar o .guardar > " + Colores.ENDC)
+
+        if opcion == '.guardar':
+            result = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(new_data))
+            if result:
+                result = json.loads(result)
+                print(Colores.OKGREEN + 'Auditoria editada con exito!' + Colores.ENDC)
+                time.sleep(3)
+                break
+            else:
+                print ("No recibe respuesta")
+                return "error"
+            
+        try:
+            opcion = int(opcion)
+        except ValueError:
+            continue
+
+        if not 1 <= opcion <= 3 + len(new_data['body']['respuestas']):
+            continue
+
+        if opcion == 1:
+            print("Escriba nuevo ID Bus")
+            new_data["body"]['id_bus'] = input(" > ")
+        elif opcion == 2:
+            print("Escriba nuevo ID Tipo Auditoria")
+            new_data["body"]['id_tipo_auditoria'] = input(" > ")
+        elif opcion == 3:
+            print("Escriba nuevo ID Auditor")
+            new_data["body"]['id_auditor'] = input(" > ")
+        elif 4 <= opcion < 4 + len(new_data['body']['respuestas']):
+            preguntaEditada = input(f"{new_data['body']['respuestas'][opcion - 4]['titulo']} > ")
+            new_data['body']['respuestas'][opcion - 4]['valor'] = preguntaEditada
+        else:
+            print("Opción no válida")
 
 
 def ver_resumen():
@@ -331,40 +390,43 @@ if __name__ == '__main__':
         ("Logout", lambda x: logout()),
     ]
 
-    while True:
-        os.system('cls')
-        print(Colores.HEADER + "Login como Administrador" + Colores.ENDC)
+    try:
+        while True:
+            os.system('cls')
+            print(Colores.HEADER + "Login como Administrador" + Colores.ENDC)
 
-        username = input("Usuario > ")
-        password = input("Contraseña > ")
+            username = input("Usuario > ")
+            password = input("Contraseña > ")
 
-        response = login(username, password)
+            response = login(username, password)
 
-        if response['status'] == 'correct':
-            locked_in = True
-            break
-        else:
-            print(response['message'])
+            if response['status'] == 'correct':
+                locked_in = True
+                break
+            else:
+                print(response['message'])
 
-    while locked_in:
-        os.system('cls')
-        print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
+        while locked_in:
+            os.system('cls')
+            print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
 
-        for i, comando in enumerate(comandos):
-            print(f"{i + 1}.- {comando[0]}")
+            for i, comando in enumerate(comandos):
+                print(f"{i + 1}.- {comando[0]}")
 
-        try:
-            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
-        except KeyboardInterrupt:
+            try:
+                comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
+            except KeyboardInterrupt:
+                quit()
+            except:
+                continue
+
+            if comando > len(comandos):
+                continue
+            
+            os.system('cls')
+            x = comandos[comando][1](1)
+            
+            if x == "break":
+                break
+    except KeyboardInterrupt:
             quit()
-        except:
-            continue
-
-        if comando > len(comandos):
-            continue
-        
-        os.system('cls')
-        x = comandos[comando][1](1)
-
-        if x == "break":
-            break

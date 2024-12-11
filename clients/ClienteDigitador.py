@@ -1,6 +1,7 @@
 import json
 import os
 import datetime
+import time
 from utils import Colores, input_int, request
 
     
@@ -49,12 +50,13 @@ def eliminar_auditoria(auditoria_id):
     if comando.lower() == 'n':
         return
     
-    data = {
-        "comando": 'delete_auditoria',
-        "auditoria_id": auditoria_id 
-    }
+    elif comando.lower() == 's':
+        data = {
+            "comando": 'delete_auditoria',
+            "auditoria_id": auditoria_id 
+        }
 
-    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
 
 
 def ver_buses():
@@ -211,9 +213,13 @@ def registerAuditoria():
         
         try:
             formulario_index = int(comando) - 1
-            break
         except ValueError:
             continue
+
+        if not 0 <= formulario_index < len(grupoCampos):
+            continue
+
+        break
 
     id_grupo_campos = grupoCampos[formulario_index]["id"]
     marca_temporal = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -229,88 +235,82 @@ def registerAuditoria():
     response = addAuditoria(marca_temporal, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
     return response
 
+
 def editAuditoria(auditoria_id):
     data = {
-        "comando": 'get_auditoriaIDs',
+        "comando": 'get_auditoria',
         'auditoria_id': auditoria_id
     }
     
-    auditoriaIDs = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-    auditoriaIDs = json.loads(auditoriaIDs)
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = json.loads(response)
     
-    auditoriaIDs = auditoriaIDs['auditoriaIDs'][0]
+    auditoria = response['auditoria']['auditoria']
     
-    response = {
+    new_data = {
         "comando": 'editAuditoria',
         "body": {
-            "auditoria_id": auditoriaIDs['id'],
-            "marca_temporal": auditoriaIDs['marca_temporal'],
-            "fecha" : auditoriaIDs['fecha'],
-            "id_grupo_campos" : auditoriaIDs['id_grupo_campos'],
-            "id_bus" : auditoriaIDs['id_bus'],
-            "id_tipo_auditoria" : auditoriaIDs['id_tipo_auditoria'],
-            "id_auditor" : auditoriaIDs['id_auditor'],
-            "respuestas" : datos['auditoria']['respuestas']
+            "auditoria_id": auditoria['id'],
+            "marca_temporal": auditoria['marca_temporal'],
+            "fecha" : auditoria['fecha'],
+            "id_grupo_campos" : auditoria['id_grupo_campos'],
+            "id_bus" : auditoria['id_bus'],
+            "id_tipo_auditoria" : auditoria['id_tipo_auditoria'],
+            "id_auditor" : auditoria['id_auditor'],
+            "respuestas" : response['auditoria']['respuestas']
         }
     }
     
     while True:
-        
-        print(f"""
-            {"%-20s" % 'Marca Temporal'}: {response['body']['marca_temporal']}
-            {"%-20s" % 'Fecha'}: {response['body']['fecha']}
-            {"%-20s" % 'ID Bus'}: {response['body']['id_bus']}
-            {"%-20s" % 'ID Tipo Auditoria'}: {response['body']['id_tipo_auditoria']}
-            {"%-20s" % 'ID Auditor'}: {response['body']['id_auditor']}
+        os.system('cls')
+        print(Colores.HEADER + 'Editar auditoria' + Colores.ENDC +
+f"""
+--- {"%-20s" % 'Fecha'}: {new_data['body']['marca_temporal']}
+1.- {"%-20s" % 'ID Bus'}: {new_data['body']['id_bus']}
+2.- {"%-20s" % 'ID Tipo Auditoria'}: {new_data['body']['id_tipo_auditoria']}
+3.- {"%-20s" % 'ID Auditor'}: {new_data['body']['id_auditor']}
         """)
-        print(Colores.HEADER + "Grupo " + datos['auditoria']['auditoria'][3] + Colores.ENDC)
+        print(Colores.HEADER + "Grupo " + auditoria['formulario'] + Colores.ENDC)
             
-        for respuesta in datos['auditoria']['respuestas']:
-            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
-        
-        print("Seleccione el campo a editar:")
-        print("1. Marca Temporal")
-        print("4. Bus")
-        print("5. Tipo Auditoria")
-        print("6. Auditor")
-        print("7. Respuestas")
-        print("8. Enviar Cambios")
-        print("9. Salir")
+        for i, respuesta in enumerate(new_data['body']['respuestas'], start=4):
+            print(f"{i}.- {respuesta['titulo']:<20}: {respuesta['valor']:<40}")
 
-        opcion = input_int(" > ")
+        opcion = input(Colores.OKCYAN + "[Numero] Campo a editar o .guardar > " + Colores.ENDC)
 
-        if opcion == 1:
-            print("Escriba nueva Marca Temporal")
-            response["body"]['marca_temporal'] = input(" > ")
-        elif opcion == 3:
-            print("Escriba nuevo ID Grupo Campos")
-            response["body"]['id_grupo_campos'] = input(" > ")
-        elif opcion == 4:
-            print("Escriba nuevo ID Bus")
-            response["body"]['id_bus'] = input(" > ")
-        elif opcion == 5:
-            print("Escriba nuevo ID Tipo Auditoria")
-            response["body"]['id_tipo_auditoria'] = input(" > ")
-        elif opcion == 6:
-            print("Escriba nuevo ID Auditor")
-            response["body"]['id_auditor'] = input(" > ")
-        elif opcion == 7:
-            print("Elija la respuesta a editar")
-            preguntaEditar = input(" > ")    
-            print("Escriba nueva respuesta")
-            preguntaEditada = input(" > ")
-            response["body"]["respuestas"][int(preguntaEditar) - 1][1] = preguntaEditada
-        elif opcion == 8:
-            result = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(response))
+        if opcion == '.guardar':
+            result = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(new_data))
             if result:
                 result = json.loads(result)
+                print(Colores.OKGREEN + 'Auditoria editada con exito!' + Colores.ENDC)
+                time.sleep(3)
+                break
             else:
                 print ("No recibe respuesta")
                 return "error"
-        elif opcion == 9:
-            return "break"
+            
+        try:
+            opcion = int(opcion)
+        except ValueError:
+            continue
+
+        if not 1 <= opcion <= 3 + len(new_data['body']['respuestas']):
+            continue
+
+        if opcion == 1:
+            print("Escriba nuevo ID Bus")
+            new_data["body"]['id_bus'] = input(" > ")
+        elif opcion == 2:
+            print("Escriba nuevo ID Tipo Auditoria")
+            new_data["body"]['id_tipo_auditoria'] = input(" > ")
+        elif opcion == 3:
+            print("Escriba nuevo ID Auditor")
+            new_data["body"]['id_auditor'] = input(" > ")
+        elif 4 <= opcion < 4 + len(new_data['body']['respuestas']):
+            preguntaEditada = input(f"{new_data['body']['respuestas'][opcion - 4]['titulo']} > ")
+            new_data['body']['respuestas'][opcion - 4]['valor'] = preguntaEditada
         else:
             print("Opción no válida")
+
 
 if __name__ == '__main__':
     locked_in = True
@@ -322,53 +322,44 @@ if __name__ == '__main__':
         ("Logout", lambda x: logout())
     ]
 
-    '''while True:
-        os.system('cls')
-        print(Colores.HEADER + "Login como Digitador" + Colores.ENDC)
+    try:
+        while True:
+            os.system('cls')
+            print(Colores.HEADER + "Login como Digitador" + Colores.ENDC)
 
-        username = input("Usuario > ")
-        password = input("Contraseña > ")
+            username = input("Usuario > ")
+            password = input("Contraseña > ")
 
-        response = login(username, password)
+            response = login(username, password)
 
-        if response['status'] == 'correct':
-            locked_in = True
-            break
-        else:
-            print(response['message'])'''
+            if response['status'] == 'correct':
+                locked_in = True
+                break
+            else:
+                print(response['message'])
 
-    while locked_in:
-        os.system('cls')
-        print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
+        while locked_in:
+            os.system('cls')
+            print(Colores.HEADER + "Seleccione comando:" + Colores.ENDC)
 
-        for i, comando in enumerate(comandos):
-            print(f"{i + 1}.- {comando[0]}")
+            for i, comando in enumerate(comandos):
+                print(f"{i + 1}.- {comando[0]}")
 
-        try:
-            comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
-        except KeyboardInterrupt:
-            quit()
-        except:
-            continue
+            try:
+                comando = int(input(Colores.OKGREEN + "Comando > " + Colores.ENDC)) - 1
+            except KeyboardInterrupt:
+                quit()
+            except:
+                continue
 
-        if comando > len(comandos):
-            continue
-        
-        os.system('cls')
-        x = comandos[comando][1](1)
+            if comando > len(comandos):
+                continue
+            
+            os.system('cls')
+            x = comandos[comando][1](1)
 
-        if x == "break":
-            break
-        
-        {'status': 
-            'correct',
-            'auditoria': 
-                {'auditoria': 
-                    [1, '2024-12-07 23:57:59', '2024-12-06 2:00:00', 'Torniquete', 'B-001', 'Seguimiento', 'Auditor1'], 
-                        'respuestas':[
-                            ['Funcionamiento', 'Funciona'], 
-                            ['Limpieza', 'Limpio'], 
-                            ['Tipo', '3 Brazos']
-                            ]
-                        }
-                }
+            if x == "break":
+                break
+
+    except KeyboardInterrupt:
+        quit()

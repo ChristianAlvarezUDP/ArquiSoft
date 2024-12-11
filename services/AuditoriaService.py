@@ -100,7 +100,7 @@ def get_auditoria(auditoria_id):
     cursor = conn.cursor()
 
     cursor.execute(f'''
-        SELECT a.id, a.marca_temporal, a.fecha, gc.nombre as formulario, b.n_interno, ta.nombre as tipo, au.nombre as auditor FROM auditoria AS a
+        SELECT a.id, a.marca_temporal, a.fecha, gc.id as id_grupo_campos, gc.nombre as formulario, b.id as id_bus, b.n_interno, ta.id as id_tipo_auditoria, ta.nombre as tipo, au.id as id_auditor, au.nombre as auditor FROM auditoria AS a
         JOIN grupo_campos AS gc ON a.id_grupo_campos = gc.id
         JOIN bus AS b ON a.id_bus = b.id
         JOIN tipo_auditoria AS ta ON a.id_tipo_auditoria = ta.id
@@ -198,10 +198,15 @@ def editAuditoria(auditoria_id, body):
         
         for campo in body['respuestas']:
             cursor.execute(f'''
+                WITH t AS (
+                    SELECT id FROM campo_auditoria
+                    WHERE titulo = ?
+                )
                 UPDATE respuesta_auditoria
                 SET valor = ?
-                WHERE id_auditoria = ? AND id_campo_auditoria = ?
-                ''', (campo[1], auditoria_id, campo[2]))
+                FROM t
+                WHERE id_auditoria = ? AND id_campo_auditoria = t.id
+                ''', ( campo['titulo'], campo['valor'], auditoria_id))
 
         conn.commit()
         conn.close()
