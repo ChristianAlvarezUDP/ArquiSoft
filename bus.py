@@ -22,7 +22,7 @@ class SOABus:
 
     def handle_client(self, client_socket):
         try:
-            data = client_socket.recv(1024).decode('utf-8')
+            data = client_socket.recv(8192).decode('utf-8')
             print(f"Received request: {data}")
             service_name, message = data.split(':', 1)
 
@@ -32,7 +32,7 @@ class SOABus:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as service_socket:
                     service_socket.connect(address)
                     service_socket.sendall(message.encode('utf-8'))
-                    response = service_socket.recv(1024)
+                    response = service_socket.recv(8192)
                 client_socket.sendall(response)
             else:
                 client_socket.sendall(b"Error: Service not found")

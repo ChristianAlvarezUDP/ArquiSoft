@@ -1,3 +1,7 @@
+import socket
+import struct
+import time
+
 class Colores:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -18,3 +22,19 @@ def input_int(prompt: int) -> int:
             quit()
         except:
             print(Colores.FAIL + "Ingrese un numero" + Colores.ENDC)
+
+
+def request(bus_ip, bus_port, service_name, message):
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+            client_socket.connect((bus_ip, bus_port))
+            request = f"{service_name}:{message}"
+            client_socket.sendall(request.encode('utf-8'))
+            response = client_socket.recv(8192)
+            return response.decode('utf-8')
+    except ConnectionRefusedError:
+        return json.dumps({"status": "error", "message": "El servidor no está disponible."})
+    except socket.timeout:
+        return json.dumps({"status": "error", "message": "El servidor no respondió a tiempo."})
+    except Exception as e:
+        return json.dumps({"status": "error", "message": f"Error inesperado: {str(e)}"})

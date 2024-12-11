@@ -25,7 +25,7 @@ def request(bus_ip, bus_port, service_name, message):
 
 def filtrar_auditorias(auditoria, form_id):
     date_format = "%Y-%m-%d %H:%M:%S"
-    fecha = datetime.strptime(auditoria['fecha'], date_format)
+    fecha = datetime.strptime(auditoria['marca_temporal'], date_format)
 
     now = datetime.now()
     time_diff = abs(now - fecha)
@@ -37,10 +37,11 @@ def generar_reporte(form_id):
     filename = "reporte.xlsx"
 
     field_aliases = {
-        'tipo': 'Tipo Auditoria'
+        'tipo': 'Tipo Auditoria',
+        'marca_temporal': 'Fecha'
     }
 
-    blocked_fields = ['id', 'marca_temporal', 'formulario']
+    blocked_fields = ['id', 'fecha', 'formulario']
 
     query = {
         'comando': 'get_all_auditorias'

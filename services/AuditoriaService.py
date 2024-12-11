@@ -1,8 +1,10 @@
+import struct
 import sys
 import socket
 import threading
 import sqlite3
 import json
+import time
 
 def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
@@ -11,16 +13,16 @@ def dict_factory(cursor, row):
 def service_worker(service_name, host, port):
     print(f"{service_name} iniciando en {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+        server_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536) 
         server_socket.bind((host, port))
         server_socket.listen()
         while True:
             client_socket, _ = server_socket.accept()
-            data = client_socket.recv(1024).decode('utf-8')
+            data = client_socket.recv(4096).decode('utf-8')
             print(f"{service_name} received: {data}")
 
             data = json.loads(data)
-
-            print(data)
 
             response = ""
             if data['comando'] == 'get_auditoria':
@@ -45,10 +47,12 @@ def service_worker(service_name, host, port):
             
             elif data['comando'] == 'registerAuditoria':
                 registerAuditoria(data['body'])
-                response_data = {
+                response = {
                     'status': 'correct',
                     'message': 'Auditoria registrada correctamente'
                 }
+
+                response = json.dumps(result)
             
             elif data['comando'] == 'delete_auditoria':
                 success = delete_auditoria(data['auditoria_id'])
@@ -68,8 +72,10 @@ def service_worker(service_name, host, port):
                 response = json.dumps(response_data)
 
             print(f"{service_name} responde: {response}")
-            client_socket.sendall(response.encode('utf-8'))
-            client_socket.close()
+
+            serialized = response.encode('utf-8')
+            client_socket.sendall(serialized)
+
 
 def get_auditoria(auditoria_id):
     conn = sqlite3.connect("sqlite/arqui.db")

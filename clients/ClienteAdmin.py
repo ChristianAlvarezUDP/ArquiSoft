@@ -1,20 +1,9 @@
-import socket
 import json
 import os
 import time
 import datetime
-from utils import Colores, input_int
+from utils import Colores, input_int, request
 
-
-def request(bus_ip, bus_port, service_name, message):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect((bus_ip, bus_port))
-        request = f"{service_name}:{message}"
-        client_socket.sendall(request.encode('utf-8'))
-        response = client_socket.recv(1024)
-
-        return response.decode('utf-8')
-    
 
 def login(username, password):
     data = {

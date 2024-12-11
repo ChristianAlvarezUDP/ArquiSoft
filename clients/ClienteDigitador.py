@@ -1,8 +1,7 @@
-import socket
 import json
 import os
 import datetime
-from utils import input_int, Colores
+from utils import Colores, input_int, request
 
     
 def login(username, password):
@@ -18,17 +17,6 @@ def login(username, password):
 
 def logout():
     return "break"
-
-#TODO: Revisar direcciones de servicios, cambiar comandos
-
-def request(bus_ip, bus_port, service_name, message):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect((bus_ip, bus_port))
-        request = f"{service_name}:{message}"
-        client_socket.sendall(request.encode('utf-8'))
-        response = client_socket.recv(1024)
-
-        return response.decode('utf-8')
 
 def get_auditoria(auditoria_id):
     data = {
@@ -140,12 +128,12 @@ def retrieveGruposCampos():
         print ("No recibe respuesta")
         return "error"
 
-def addAuditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas):
+def addAuditoria(marca_temporal, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas):
     data = {
         "comando": 'registerAuditoria',
         "body": {
             "marca_temporal": marca_temporal,
-            "fecha" : fecha,
+            "fecha" : "2024-12-10 01:00:00",
             "id_grupo_campos" : id_grupo_campos,
             "id_bus" : id_bus,
             "id_tipo_auditoria" : id_tipo_auditoria,
@@ -153,7 +141,7 @@ def addAuditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditor
             "respuestas" : respuestas 
         }
     }
-    response = request('127.0.0.1', 5000, 'GestionFormularioService.py', json.dumps(data))
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
     if response:
         response = json.loads(response)
     else:
@@ -201,13 +189,12 @@ def registerAuditoria():
     os.system('cls')
     print(Colores.HEADER + 'General' + Colores.ENDC)
 
-    fecha = input(Colores.OKCYAN + "Fecha > " + Colores.ENDC)
     id_bus = input(Colores.OKCYAN + "Bus > " + Colores.ENDC)
     id_tipo_auditoria = input(Colores.OKCYAN + "Tipo Auditoria > " + Colores.ENDC)
     id_auditor = input(Colores.OKCYAN + "Auditor > " + Colores.ENDC)
     
     respuestas = answerCampos(id_grupo_campos)
-    response = addAuditoria(marca_temporal, fecha, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
+    response = addAuditoria(marca_temporal, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
     return response
 
 
@@ -231,7 +218,6 @@ def editAuditoria(auditoria_id):
     while True:
         print("Seleccione el campo a editar:")
         print("1. Marca Temporal")
-        print("2. Fecha")
         print("4. Bus")
         print("5. Tipo Auditoria")
         print("6. Auditor")
@@ -244,9 +230,6 @@ def editAuditoria(auditoria_id):
         if opcion == 1:
             print("Escriba nueva Marca Temporal")
             response["body"]['marca_temporal'] = input(" > ")
-        elif opcion == 2:
-            print("Escriba nueva Fecha")
-            response["body"]['fecha'] = input(" > ")
         elif opcion == 3:
             print("Escriba nuevo ID Grupo Campos")
             response["body"]['id_grupo_campos'] = input(" > ")
@@ -283,11 +266,13 @@ def ver_auditorias():
             "comando": 'get_all_auditorias'
         }
 
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+
+        auditorias = json.loads(response)
+
         os.system('cls')
         print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
-        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-        auditorias = json.loads(response)
-        print (auditorias)
+        
         for i, auditoria in enumerate(auditorias['auditorias']):
             print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
 
