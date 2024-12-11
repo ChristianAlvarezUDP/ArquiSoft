@@ -200,6 +200,9 @@ def ver_auditorias(id_auditor):
             auditoria_index = int(comando) - 1
         except:
             continue
+
+        if 0 <= auditoria_index < len(auditorias):
+            continue
         
         auditoria_id = auditorias[auditoria_index]['id']
         break
