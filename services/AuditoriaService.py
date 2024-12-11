@@ -134,6 +134,29 @@ def registerAuditoria(body):
     conn.commit()
     conn.close()
 
+    def editAuditoria(auditoria_id, body):
+        conn = sqlite3.connect("sqlite/arqui.db")
+        cursor = conn.cursor()
+
+        cursor.execute(f'''
+            UPDATE auditoria
+            SET marca_temporal = ?, fecha = ?, id_grupo_campos = ?, id_bus = ?, id_tipo_auditoria = ?, id_auditor = ?
+            WHERE id = ?
+            ''', (body['marca_temporal'], body['fecha'], body['id_grupo_campos'], body['id_bus'], body['id_tipo_auditoria'], body['id_auditor'], auditoria_id))
+        
+        cursor.execute(f'''
+            DELETE FROM respuesta_auditoria
+            WHERE id_auditoria = ?
+            ''', (auditoria_id,))
+        
+        for campo in body['respuestas']:
+            cursor.execute(f'''
+                INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) 
+                VALUES (?, ?, ?)
+                ''', (auditoria_id, campo['id'], campo['titulo']))
+
+        conn.commit()
+        conn.close()
 
 def delete_auditoria(auditoria_id):
     conn = sqlite3.connect("sqlite/arqui.db")
@@ -146,7 +169,6 @@ def delete_auditoria(auditoria_id):
     
     conn.commit()
     conn.close()
-
 
 if __name__ == '__main__':
     threading.Thread(target=service_worker, args=(sys.argv[0].split('/')[-1], '127.0.0.1', int(sys.argv[1]))).start()
