@@ -4,9 +4,7 @@ import os
 from utils import Colores, input_int
 from tabulate import tabulate
 
-
 userId = -1
-
 
 def request(bus_ip, bus_port, service_name, message):
     try:

@@ -3,18 +3,7 @@ import json
 import os
 import time
 import datetime
-
-
-class Colores:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+from utils import Colores, input_int
 
 
 def request(bus_ip, bus_port, service_name, message):
@@ -68,10 +57,9 @@ def agregar_usuario():
     for i, group in enumerate(response['groups']):
         print(f"{i + 1}.- {group[1]}")
 
-    # TODO: arreglar INT input
-    group_selected = int(input(" > ")) - 1
+    group_index = input_int(" > ") - 1
 
-    group_id = response['groups'][group_selected][0]
+    group_id = response['groups'][group_index][0]
 
     data = {
         "comando": 'add_user',
@@ -103,15 +91,27 @@ def agregar_grupo():
 import json
 
 def crear_formularios():
-    name = input("Nombre del formulario > ")
+    name = input("Nombre del formulario > ").strip()
+    if not name:
+        print("Debe ingresar un nombre para el formulario.")
+        return
+
     print("Ingrese preguntas. Cuando haya ingresado todas, escriba [S]. Para cancelar o eliminar la pregunta anterior, escriba [C].")
 
     preguntas = []
     while True:
         pregunta = input("Pregunta > ").strip()
+
+        if not pregunta:  # Si la entrada está vacía
+            print("Ingrese pregunta")
+            continue
+
         if pregunta.upper() == "S":
-            # Finalizar la creación de preguntas
+            if not preguntas:  # Asegura que al menos haya una pregunta antes de salir
+                print("Debe ingresar al menos una pregunta antes de finalizar.")
+                continue
             break
+
         elif pregunta.upper() == "C":
            
             if preguntas:
@@ -122,17 +122,18 @@ def crear_formularios():
                 break
         else:
             preguntas.append(pregunta)
-    
-    
+
     data = {
-        "comando" : "insert_form",
+        "comando": "insert_form",
         "name": name,
         "preguntas": preguntas
     }
 
-    response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
+    if preguntas:
+        response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
+    else:
+        print("Vuelta al menu")
 
-    
     print(f"Formulario '{name}' creado y guardado como {name.replace(' ', '_')}_formulario.json.")
 
 
@@ -274,9 +275,49 @@ def ver_resumen():
 
 
 def generar_reporte():
-    print(Colores.HEADER + "Generar Reporte" + Colores.ENDC)
-    id_form = input("Formulario > ")
-    pass
+    while True:
+        data = {
+            'comando': 'get_all_forms'
+        }
+
+        response = request('127.0.0.1', 5000, 'GestionFormulariosService.py', json.dumps(data))
+        response = json.loads(response)
+
+        forms = list(response['forms'].values())
+
+        os.system('cls')
+        print(Colores.HEADER + "Generar Reporte" + Colores.ENDC)
+        for i, form in enumerate(forms):
+            print(f"{i + 1}.- {form['nombre']}")
+
+        comando = input(Colores.OKCYAN + "[ID] Formulario o .salir > " + Colores.ENDC) 
+
+        if comando == ".salir":
+            return
+        
+        try:
+            form_index = int(comando) - 1
+        except ValueError:
+            continue
+
+        if not 0 <= form_index < len(forms):
+            continue
+
+        data = {
+            'comando': 'generar_reporte',
+            'id_form': forms[form_index]
+        }
+
+        response = request('127.0.0.1', 5000, 'GenerateReportService.py', json.dumps(data))
+        response = json.loads(response)
+
+        if response['status'] == 'correct':
+            print(Colores.OKGREEN + 'Reporte generado con exito!' + Colores.ENDC)
+            time.sleep(3)
+
+        if response['status'] == 'error':
+            print(Colores.FAIL + response['error'] + Colores.ENDC)
+            input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
 
 
 def logout():

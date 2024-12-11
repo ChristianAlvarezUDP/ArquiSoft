@@ -88,11 +88,13 @@ def service_worker(service_name, host, port):
 
                 response = json.dumps(response_data)
 
+            print(f"{service_name} responde: {response}")
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()
 
 def get_auditoria(auditoria_id):
     conn = sqlite3.connect("sqlite/arqui.db")
+    conn.row_factory = dict_factory 
     cursor = conn.cursor()
 
     cursor.execute(f'''
@@ -139,7 +141,7 @@ def get_all_auditorias():
     cursor = conn.cursor()
 
     cursor.execute(f'''
-        SELECT a.id, a.marca_temporal, a.fecha, gc.nombre as formulario, b.n_interno as bus, ta.nombre as tipo, au.nombre as auditor FROM auditoria AS a
+        SELECT a.id, a.marca_temporal, a.fecha, gc.id as id_formulario, gc.nombre as formulario, b.n_interno as bus, ta.nombre as tipo, au.nombre as auditor FROM auditoria AS a
         JOIN grupo_campos AS gc ON a.id_grupo_campos = gc.id
         JOIN bus AS b ON a.id_bus = b.id
         JOIN tipo_auditoria AS ta ON a.id_tipo_auditoria = ta.id

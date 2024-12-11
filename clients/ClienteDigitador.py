@@ -2,17 +2,8 @@ import socket
 import json
 import os
 import datetime
+from utils import input_int, Colores
 
-class Colores:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
     
 def login(username, password):
     data = {
@@ -39,7 +30,7 @@ def request(bus_ip, bus_port, service_name, message):
 
         return response.decode('utf-8')
 
-def retrieveAuditoriaByID(auditoria_id):
+def get_auditoria(auditoria_id):
     data = {
         "comando": 'get_auditoria',
         'auditoria_id': auditoria_id
@@ -49,7 +40,7 @@ def retrieveAuditoriaByID(auditoria_id):
     response = json.loads(response)
     return response
 
-def retrieveCampos(id_grupo_campos):
+def get_formulario(id_grupo_campos):
     data = {
         "comando": 'get_all_forms_group',
         "body": {
@@ -77,6 +68,65 @@ def eliminar_auditoria(auditoria_id):
 
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
 
+
+def ver_auditorias():
+    while True:
+        data = {
+            "comando": 'get_all_auditorias'
+        }
+
+        os.system('cls')
+        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        auditorias = json.loads(response)
+
+        
+        for i, auditoria in enumerate(auditorias['auditorias']):
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
+
+        comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
+
+        if comando == ".salir":
+            return
+        
+        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
+        
+        ver_auditoria(auditoria_id)
+
+
+def ver_auditoria(auditoria_id):
+    data = {
+        "comando": 'get_auditoria',
+        'auditoria_id': auditoria_id
+    }
+        
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = json.loads(response)
+
+    os.system('cls')
+    print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+
+    print(f"""{"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
+{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
+{"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
+{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
+{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+""")
+    
+    print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
+    
+    for respuesta in response['auditoria']['respuestas']:
+        print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+
+    comando = input(Colores.OKCYAN + ".eliminar, .modificar o Enter > " + Colores.ENDC)
+
+    if comando == ".eliminar":
+        eliminar_auditoria(auditoria_id)
+
+    if comando == ".modificar":
+        eliminar_auditoria(auditoria_id)
+
+    
 def retrieveGruposCampos():
     data = {
         "comando": 'get_all_forms_group',
@@ -141,7 +191,9 @@ def registerAuditoria():
     for i, grupoCampo in enumerate(grupoCampos):
         print(f"{i + 1}.-  {grupoCampo["nombre"]}")
 
-    id_grupo_campos = grupoCampos[int(input(" > ")) - 1]["id"] 
+    formulario_index = input_int(" > ") - 1
+
+    id_grupo_campos = grupoCampos[formulario_index]["id"]
     marca_temporal = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     os.system('cls')
@@ -206,7 +258,7 @@ def editAuditoria(datos):
         print("8. Enviar Cambios")
         print("9. Salir")
 
-        opcion = int(input(" > "))
+        opcion = input_int(" > ")
 
         if opcion == 1:
             print("Escriba nueva Marca Temporal")
