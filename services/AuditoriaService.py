@@ -49,12 +49,33 @@ def service_worker(service_name, host, port):
                     'status': 'correct',
                     'message': 'Auditoria registrada correctamente'
                 }
+                
+                response = json.dumps(response_data)
+            
+            elif data['comando'] == 'editAuditoria':
+                editAuditoria(data['body']['auditoria_id'], data['body'])
+                response_data = {
+                    'status': 'correct',
+                    'message': 'Auditoria editada correctamente'
+                }
+                
+                response = json.dumps(response_data)
             
             elif data['comando'] == 'delete_auditoria':
                 success = delete_auditoria(data['auditoria_id'])
 
                 result = {
                     'status':  'correct'
+                }
+
+                response = json.dumps(result)
+            elif data['comando'] == 'get_auditoriaIDs':
+                print("HOLA")
+                auditoriaIDs = get_auditoriaIDs(data['auditoria_id'])
+
+                result = {
+                    'status':  'correct',
+                    'auditoriaIDs': auditoriaIDs
                 }
 
                 response = json.dumps(result)
@@ -86,7 +107,7 @@ def get_auditoria(auditoria_id):
     auditoria = cursor.fetchone()
 
     cursor.execute(f'''
-        SELECT ca.titulo, ra.valor FROM respuesta_auditoria AS ra
+        SELECT ca.titulo, ra.valor, ra.id_campo_auditoria FROM respuesta_auditoria AS ra
         JOIN campo_auditoria AS ca ON ra.id_campo_auditoria = ca.id
         WHERE ra.id_auditoria = (?)
         ''', (auditoria_id,))
@@ -96,6 +117,21 @@ def get_auditoria(auditoria_id):
     conn.close()
 
     return {'auditoria': auditoria, 'respuestas': respuestas}
+
+def get_auditoriaIDs(auditoria_id):
+    conn = sqlite3.connect("sqlite/arqui.db")
+    conn.row_factory = dict_factory 
+    cursor = conn.cursor()
+
+    cursor.execute(f'''
+        SELECT * FROM auditoria
+        WHERE id = (?)
+        ''', (auditoria_id,))
+    
+    auditoriaIDs = cursor.fetchall()
+    conn.close()
+
+    return auditoriaIDs
 
 def get_all_auditorias():
     conn = sqlite3.connect("sqlite/arqui.db")
@@ -134,30 +170,6 @@ def registerAuditoria(body):
     conn.commit()
     conn.close()
 
-    def editAuditoria(auditoria_id, body):
-        conn = sqlite3.connect("sqlite/arqui.db")
-        cursor = conn.cursor()
-
-        cursor.execute(f'''
-            UPDATE auditoria
-            SET marca_temporal = ?, fecha = ?, id_grupo_campos = ?, id_bus = ?, id_tipo_auditoria = ?, id_auditor = ?
-            WHERE id = ?
-            ''', (body['marca_temporal'], body['fecha'], body['id_grupo_campos'], body['id_bus'], body['id_tipo_auditoria'], body['id_auditor'], auditoria_id))
-        
-        cursor.execute(f'''
-            DELETE FROM respuesta_auditoria
-            WHERE id_auditoria = ?
-            ''', (auditoria_id,))
-        
-        for campo in body['respuestas']:
-            cursor.execute(f'''
-                INSERT INTO respuesta_auditoria(id_auditoria, id_campo_auditoria, valor) 
-                VALUES (?, ?, ?)
-                ''', (auditoria_id, campo['id'], campo['titulo']))
-
-        conn.commit()
-        conn.close()
-
 def delete_auditoria(auditoria_id):
     conn = sqlite3.connect("sqlite/arqui.db")
     cursor = conn.cursor()
@@ -169,6 +181,26 @@ def delete_auditoria(auditoria_id):
     
     conn.commit()
     conn.close()
+
+def editAuditoria(auditoria_id, body):
+        conn = sqlite3.connect("sqlite/arqui.db")
+        cursor = conn.cursor()
+
+        cursor.execute(f'''
+            UPDATE auditoria
+            SET marca_temporal = ?, fecha = ?, id_grupo_campos = ?, id_bus = ?, id_tipo_auditoria = ?, id_auditor = ?
+            WHERE id = ?
+            ''', (body['marca_temporal'], body['fecha'], body['id_grupo_campos'], body['id_bus'], body['id_tipo_auditoria'], body['id_auditor'], auditoria_id))
+        
+        for campo in body['respuestas']:
+            cursor.execute(f'''
+                UPDATE respuesta_auditoria
+                SET valor = ?
+                WHERE id_auditoria = ? AND id_campo_auditoria = ?
+                ''', (campo[1], auditoria_id, campo[2]))
+
+        conn.commit()
+        conn.close()
 
 if __name__ == '__main__':
     threading.Thread(target=service_worker, args=(sys.argv[0].split('/')[-1], '127.0.0.1', int(sys.argv[1]))).start()
