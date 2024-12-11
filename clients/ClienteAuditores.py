@@ -176,20 +176,20 @@ def listar_buses_auditados():
 def ver_auditorias(id_auditor):
     while True:
         data = {
-            'comando': 'verAuditoriasHechas',
+            'comando': 'AuditoriasPorAuditor',
             "body": {
                 'id_auditor': id_auditor,
             }
         }
 
-        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        response = request('127.0.0.1', 5000, 'GenerateReportService.py', json.dumps(data))
         auditorias = json.loads(response)
 
         os.system('cls')
         print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
         
-        for i, auditoria in enumerate(auditorias['auditorias']):
-            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['marca_temporal']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
+        for i, auditoria in enumerate(auditorias):
+            print(f"{i + 1:<5} | {auditoria['grupo_campos_nombre']:<15} | {auditoria['marca_temporal']:<20} | {auditoria['bus_interno']:<7} | {auditoria['tipo_auditoria_nombre']:<15} | {auditoria['auditor_nombre']:<20}")
 
         comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
 
@@ -201,32 +201,32 @@ def ver_auditorias(id_auditor):
         except:
             continue
         
-        auditoria_id = auditorias['auditorias'][auditoria_index]['id']
+        auditoria_id = auditorias[auditoria_index]['id']
+        break
         
-        data = {
-            "comando": 'get_auditoria',
-            'auditoria_id': auditoria_id
-        }
+    data = {
+        "comando": 'get_auditoria',
+        'auditoria_id': auditoria_id
+    }
         
-        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-        response = json.loads(response)
-        
-        os.system('cls')
-        print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+    response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+    response = json.loads(response)
 
-        print(f"""{"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
-{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
-{"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
-{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
-{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+    os.system('cls')
+    print(Colores.HEADER + f"Auditoria {auditoria_index}" + Colores.ENDC)
+
+    print(f"""{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria']['marca_temporal']}
+{"%-20s" % 'Bus'}: {response['auditoria']['auditoria']['n_interno']}
+{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria']['tipo']}
+{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria']['auditor']}
 """)
-        
-        print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
-        
-        for respuesta in response['auditoria']['respuestas']:
-            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+    
+    print(Colores.HEADER + response['auditoria']['auditoria']['formulario'] + Colores.ENDC)
+    
+    for respuesta in response['auditoria']['respuestas']:
+        print(f"{respuesta['titulo']:<20}: {respuesta['valor']:<40}")
 
-        input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
+    comando = input(Colores.OKCYAN + "Presiona Enter para continuar > " + Colores.ENDC)
 
 
 if __name__ == '__main__':

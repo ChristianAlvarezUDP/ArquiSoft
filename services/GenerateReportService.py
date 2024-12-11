@@ -205,7 +205,7 @@ def service_worker(service_name, host, port):
                 response = json.dumps(response)
             
             if data["comando"] == "AuditoriasPorAuditor":
-                response = get_auditorias_by_auditor(data["id_auditor"])
+                response = get_auditorias_by_auditor(data["body"]["id_auditor"])
                 if response == []:
                     response = "No se encontraron auditorias"        
 
