@@ -10,7 +10,7 @@ def login(username, password):
         "comando": "login",
         "username": username,
         "password": password,
-        "permisos": "digitador"
+        "permisos": "Digitador"
     }
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
@@ -38,12 +38,12 @@ def get_auditoria(auditoria_id):
         
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
     response = json.loads(response)
-
+    print(response) 
     return response
 
 def get_formulario(id_grupo_campos):
     data = {
-        "comando": 'retrieve',
+        "comando": 'get_all_forms_group',
         "body": {
             "id_grupo_campos" : id_grupo_campos
         }
@@ -54,7 +54,6 @@ def get_formulario(id_grupo_campos):
     else:
         print ("No recibe respuesta")
     return response
-
 
 def eliminar_auditoria(auditoria_id):
     print("Esta seguro de que desea eliminar?")
@@ -217,32 +216,25 @@ def editAuditoria(auditoria_id):
     preguntas = get_formulario(datos['id_grupo_campos'])
     
     response = {
-        "comando": 'edit',
+        "comando": 'editAuditoria',
         "body": {
-            "marca_temporal": datos['marca_temporal'],
-            "fecha" : datos['fecha'],
-            "id_grupo_campos" : datos['id_grupo_campos'],
-            "id_bus" : datos['id_bus'],
-            "id_tipo_auditoria" : datos['id_tipo_auditoria'],
-            "id_auditor" : datos['id_auditor'],
-            "respuestas" : []
+            "marca_temporal": datos['auditoria']['auditoria'][1],
+            "fecha" : datos['auditoria']['auditoria'][2],
+            "id_grupo_campos" : datos['auditoria']['auditoria'][3],
+            "id_bus" : datos['auditoria']['auditoria'][4],
+            "id_tipo_auditoria" : datos['auditoria']['auditoria'][5],
+            "id_auditor" : datos['auditoria']['auditoria'][6],
+            "respuestas" : datos['auditoria']['respuestas']
         }
     }
     
     while True:
-        print(f"ID: {datos['id']}\n Marca Temporal: {datos['marca_temporal']}\n Fecha: {datos['fecha']}\n ID Grupo Campos: {datos['id_grupo_campos']}\n ID Bus: {datos['id_bus']}\n ID Tipo Auditoria: {datos['id_tipo_auditoria']}\n ID Auditor: {datos['id_auditor']}")
-        print("Respuestas Formulario:")
-        for respuesta in datos:
-            print(f"[{respuesta.enumerate()}] Pregunta: {preguntas[respuesta.enumerate()]}")
-            print(f"Respuesta: {respuesta}")
-        
         print("Seleccione el campo a editar:")
         print("1. Marca Temporal")
         print("2. Fecha")
-        print("3. ID Grupo Campos")
-        print("4. ID Bus")
-        print("5. ID Tipo Auditoria")
-        print("6. ID Auditor")
+        print("4. Bus")
+        print("5. Tipo Auditoria")
+        print("6. Auditor")
         print("7. Respuestas")
         print("8. Enviar Cambios")
         print("9. Salir")
@@ -272,7 +264,7 @@ def editAuditoria(auditoria_id):
             preguntaEditar = input(" > ")    
             print("Escriba nueva respuesta")
             preguntaEditada = input(" > ")
-            response["body"]["respuestas"][preguntaEditar] = preguntaEditada
+            response["body"]["respuestas"][preguntaEditar - 1][1] = preguntaEditada
         elif opcion == 8:
             response = request('127.0.0.1', 5000, 'serviceRetrieveCampos.py', json.dumps(response))
             if response:
@@ -285,29 +277,79 @@ def editAuditoria(auditoria_id):
         else:
             print("Opción no válida")
 
+def ver_auditorias():
+    while True:
+        data = {
+            "comando": 'get_all_auditorias'
+        }
 
-def login(username, password):
-    data = {
-        "comando": "login",
-        "username": username,
-        "password": password,
-        "permisos": "Digitador"
-    }
+        os.system('cls')
+        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        auditorias = json.loads(response)
+        print (auditorias)
+        for i, auditoria in enumerate(auditorias['auditorias']):
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
 
-    response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
-    return json.loads(response)
+        comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
+
+        if comando == ".salir":
+            return
+        
+        if not comando.isdigit():
+            print("ID no valido")
+            return
+        
+        if int(comando) > len(auditorias['auditorias']) or int(comando) < 1:
+            print("ID no valido")
+            return 
+           
+        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
+        
+        data = {
+            "comando": 'get_auditoria',
+            'auditoria_id': auditoria_id
+        }
+        
+        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
+        response = json.loads(response)
+        os.system('cls')
+        print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+
+        print(f"""
+            {"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
+            {"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
+            {"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
+            {"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
+            {"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+        """)
+        
+        print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
+        
+        print(response)
+        
+        for respuesta in response['auditoria']['respuestas']:
+            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+
+        comando = input(Colores.OKCYAN + ".eliminar, .modificar o Enter > " + Colores.ENDC)
+
+        if comando == ".eliminar":
+            eliminar_auditoria(auditoria_id)
+
+        if comando == ".modificar":
+            editAuditoria(response)
 
 if __name__ == '__main__':
-    locked_in = False
+    locked_in = True
 
     comandos = [
         ("Registrar Auditoria", lambda x: registerAuditoria()),
         ("Ver Auditorias", lambda x: ver_auditorias()),
         ("Ver Buses", lambda x: ver_buses()),
-        ("Logout", lambda x: logout()),
+        ("Logout", lambda x: logout())
     ]
 
-    while True:
+    '''while True:
         os.system('cls')
         print(Colores.HEADER + "Login como Digitador" + Colores.ENDC)
 
@@ -320,7 +362,7 @@ if __name__ == '__main__':
             locked_in = True
             break
         else:
-            print(response['message'])
+            print(response['message'])'''
 
     while locked_in:
         os.system('cls')
@@ -344,3 +386,16 @@ if __name__ == '__main__':
 
         if x == "break":
             break
+        
+        {'status': 
+            'correct',
+            'auditoria': 
+                {'auditoria': 
+                    [1, '2024-12-07 23:57:59', '2024-12-06 2:00:00', 'Torniquete', 'B-001', 'Seguimiento', 'Auditor1'], 
+                        'respuestas':[
+                            ['Funcionamiento', 'Funciona'], 
+                            ['Limpieza', 'Limpio'], 
+                            ['Tipo', '3 Brazos']
+                            ]
+                        }
+                }
