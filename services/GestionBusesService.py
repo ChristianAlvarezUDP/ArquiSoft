@@ -17,10 +17,10 @@ def get_all_buses():
         conn.row_factory = dict_factory
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM bus WHERE id = ?", (id,))
-        bus = cursor.fetchone()
+        cursor.execute("SELECT * FROM bus")
+        buses = cursor.fetchall()
         conn.close()
-        return bus
+        return buses
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
 
@@ -120,7 +120,15 @@ def service_worker(service_name, host, port):
             response = ""
             
             if data["comando"] == 'get_all_buses':
-                response = GetBus(data["id"])
+                buses = get_all_buses()
+
+                result = {
+                    'status':  'correct',
+                    'buses': buses
+                }
+
+                response = json.dumps(result)
+
             if data["comando"] == "GetBus":
                 response = GetBus(data["id"])
             elif data["comando"] == "createBus":
@@ -131,7 +139,6 @@ def service_worker(service_name, host, port):
                 response = auditarBus(data["body"]["selectedBus"])
             elif data["comando"] == "listarBusesAuditados":
                 response = listarBusesAuditados()
-
 
             client_socket.sendall(response.encode('utf-8'))
             client_socket.close()

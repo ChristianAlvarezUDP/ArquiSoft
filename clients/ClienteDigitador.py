@@ -44,7 +44,7 @@ def get_formulario(id_grupo_campos):
 
 def eliminar_auditoria(auditoria_id):
     print("Esta seguro de que desea eliminar?")
-    comando = input('[S] o [N]')
+    comando = input('[S] o [N] > ')
 
     if comando.lower() == 'n':
         return
@@ -58,11 +58,18 @@ def eliminar_auditoria(auditoria_id):
 
 
 def ver_buses():
-    while True:
-        data = {
-            "comando": 'get_all_auditorias'
-        }
+    data = {
+        "comando": 'get_all_buses'
+    }
 
+    response = request('127.0.0.1', 5000, 'GestionBusesService.py', json.dumps(data))
+    buses = json.loads(response)['buses']
+
+    print(Colores.HEADER + "Num   | " + "%-15s" % "ID" + " | " + "%-20s" % "N Interno" + " | " + "%-7s" % "Año" + " | " + "%-15s" % "Chasis" + " | " + "%-20s" % "Plazas" + Colores.ENDC)
+    for i, bus in enumerate(buses):
+        print(f"{i + 1:<5} | {bus['id']:<15} | {bus['n_interno']:<20} | {bus['anio']:<7} | {bus['chasis']:<15} | {bus['plazas']:<20}")
+
+    input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
         
 
 
@@ -85,7 +92,15 @@ def ver_auditorias():
         if comando == ".salir":
             return
         
-        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
+        try:
+            auditoria_index = int(comando) - 1
+        except ValueError:
+            continue
+
+        if not 0 <= auditoria_index < len(auditorias['auditorias']):
+            continue
+        
+        auditoria_id = auditorias['auditorias'][auditoria_index]['id']
         
         ver_auditoria(auditoria_id)
 
@@ -98,21 +113,21 @@ def ver_auditoria(auditoria_id):
         
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
     response = json.loads(response)
+    auditoria = response['auditoria']['auditoria']
 
     os.system('cls')
-    print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+    print(Colores.HEADER + "Auditoria " + str(auditoria['id']) + Colores.ENDC)
 
-    print(f"""{"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
-{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
-{"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
-{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
-{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+    print(f"""{"%-20s" % 'Fecha'}: {auditoria['marca_temporal']}
+{"%-20s" % 'Bus'}: {auditoria['n_interno']}
+{"%-20s" % 'Tipo Auditoria'}: {auditoria['tipo']}
+{"%-20s" % 'Auditor'}: {auditoria['auditor']}
 """)
     
-    print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
+    print(Colores.HEADER + auditoria['formulario'] + Colores.ENDC)
     
     for respuesta in response['auditoria']['respuestas']:
-        print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+        print(f"{respuesta['titulo']:<20}: {respuesta['valor']:<40}")
 
     comando = input(Colores.OKCYAN + ".eliminar, .modificar o Enter > " + Colores.ENDC)
 
@@ -120,7 +135,7 @@ def ver_auditoria(auditoria_id):
         eliminar_auditoria(auditoria_id)
 
     if comando == ".modificar":
-        eliminar_auditoria(auditoria_id)
+        editAuditoria(auditoria_id)
 
     
 def retrieveGruposCampos():
@@ -214,11 +229,10 @@ def registerAuditoria():
     response = addAuditoria(marca_temporal, id_grupo_campos, id_bus, id_tipo_auditoria, id_auditor, respuestas)
     return response
 
-def editAuditoria(datos):
-    
+def editAuditoria(auditoria_id):
     data = {
         "comando": 'get_auditoriaIDs',
-        'auditoria_id': datos['auditoria']['auditoria'][0]
+        'auditoria_id': auditoria_id
     }
     
     auditoriaIDs = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
