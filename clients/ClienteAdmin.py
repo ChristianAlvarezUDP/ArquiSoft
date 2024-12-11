@@ -35,18 +35,25 @@ def listar_usuarios():
 
 
 def agregar_usuario():
-    username = input("Usuario > ")
-    password = input("Contraseña > ")
+    username = False
+    while not username:
+        username = input("Usuario > ")
+    password = False
+    while not password:
+        password = input("Contraseña > ")
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps({'comando': 'get_groups'}))
     response = json.loads(response)
+    while True:
+        os.system('cls')
+        print(Colores.HEADER + "Seleccione un grupo:" + Colores.ENDC)
 
-    print(Colores.HEADER + "Seleccione un grupo:" + Colores.ENDC)
+        for i, group in enumerate(response['groups']):
+            print(f"{i + 1}.- {group[1]}")
 
-    for i, group in enumerate(response['groups']):
-        print(f"{i + 1}.- {group[1]}")
-
-    group_index = input_int(" > ") - 1
+        group_index = input_int(" > ") - 1
+        if 0 <= group_index < len(response['groups']):
+            break
 
     group_id = response['groups'][group_index][0]
 
@@ -65,11 +72,14 @@ def agregar_usuario():
     
 
 def agregar_grupo():
-    name = input("Nombre > ")
-    data = {
-        "comando": 'add_group',
-        'nombre': name
-    }
+    while True:
+        name = input("Nombre > ")
+        data = {
+            "comando": 'add_group',
+            'nombre': name
+        }
+        if name:
+            break
 
     response = request('127.0.0.1', 5000, 'AutentificacionService.py', json.dumps(data))
     response = json.loads(response)
@@ -124,7 +134,6 @@ def crear_formularios():
         print("Vuelta al menu")
 
     print(f"Formulario '{name}' creado y guardado como {name.replace(' ', '_')}_formulario.json.")
-
 
 
 def eliminar_auditoria(auditoria_id):
