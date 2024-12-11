@@ -290,17 +290,32 @@ f"""
             continue
 
         if opcion == 1:
-            print("Escriba nuevo ID Bus")
-            new_data["body"]['id_bus'] = input(" > ")
+            entrada = False
+            while entrada == False:
+                print("Escriba nuevo ID Bus")
+                entrada = input(" > ")
+                if entrada:
+                    new_data["body"]['id_bus'] = entrada
         elif opcion == 2:
-            print("Escriba nuevo ID Tipo Auditoria")
-            new_data["body"]['id_tipo_auditoria'] = input(" > ")
+            entrada = False
+            while entrada == False:
+                print("Escriba nuevo ID Tipo Auditoria")
+                entrada = input(" > ")
+                if entrada:
+                    new_data["body"]['id_tipo_auditoria'] = entrada
         elif opcion == 3:
-            print("Escriba nuevo ID Auditor")
-            new_data["body"]['id_auditor'] = input(" > ")
+            entrada = False
+            while entrada == False:
+                print("Escriba nuevo ID Auditor")
+                entrada = input(" > ")
+                if entrada:
+                    new_data["body"]['id_auditor'] = entrada
         elif 4 <= opcion < 4 + len(new_data['body']['respuestas']):
-            preguntaEditada = input(f"{new_data['body']['respuestas'][opcion - 4]['titulo']} > ")
-            new_data['body']['respuestas'][opcion - 4]['valor'] = preguntaEditada
+            entrada = False
+            while entrada == False:
+                entrada = input(f"{new_data['body']['respuestas'][opcion - 4]['titulo']} > ")
+                if entrada:
+                    new_data['body']['respuestas'][opcion - 4]['valor'] = entrada
         else:
             print("Opción no válida")
 
