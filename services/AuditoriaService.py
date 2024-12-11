@@ -100,7 +100,7 @@ def get_auditoria(auditoria_id):
     cursor = conn.cursor()
 
     cursor.execute(f'''
-        SELECT a.id, a.marca_temporal, a.fecha, gc.nombre, b.n_interno, ta.nombre, au.nombre FROM auditoria AS a
+        SELECT a.id, a.marca_temporal, a.fecha, gc.nombre as formulario, b.n_interno, ta.nombre as tipo, au.nombre as auditor FROM auditoria AS a
         JOIN grupo_campos AS gc ON a.id_grupo_campos = gc.id
         JOIN bus AS b ON a.id_bus = b.id
         JOIN tipo_auditoria AS ta ON a.id_tipo_auditoria = ta.id

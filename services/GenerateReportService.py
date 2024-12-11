@@ -18,7 +18,7 @@ def request(bus_ip, bus_port, service_name, message):
         client_socket.connect((bus_ip, bus_port))
         request = f"{service_name}:{message}"
         client_socket.sendall(request.encode('utf-8'))
-        response = client_socket.recv(1024)
+        response = client_socket.recv(8192)
 
         return response.decode('utf-8')
     
@@ -29,6 +29,8 @@ def filtrar_auditorias(auditoria, form_id):
 
     now = datetime.now()
     time_diff = abs(now - fecha)
+
+    print(form_id, auditoria['id_formulario'])
 
     return auditoria['id_formulario'] == form_id and time_diff <= timedelta(hours=24)
 
@@ -41,7 +43,7 @@ def generar_reporte(form_id):
         'marca_temporal': 'Fecha'
     }
 
-    blocked_fields = ['id', 'fecha', 'formulario']
+    blocked_fields = ['id', 'fecha', 'formulario', 'id_formulario']
 
     query = {
         'comando': 'get_all_auditorias'
@@ -49,6 +51,8 @@ def generar_reporte(form_id):
 
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(query))
     auditorias_data = list(filter(lambda auditoria: filtrar_auditorias(auditoria, form_id), json.loads(response)['auditorias']))
+
+    print(auditorias_data)
 
     if not auditorias_data:
         return False

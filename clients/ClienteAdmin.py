@@ -179,19 +179,24 @@ def ver_auditorias():
 
         
         for i, auditoria in enumerate(auditorias['auditorias']):
-            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['marca_temporal']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
 
         comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
 
         if comando == ".salir":
             return
         
-        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
+        try:
+            auditoria_index = int(comando) - 1
+        except ValueError:
+            continue
         
-        ver_auditoria(auditoria_id)
+        auditoria_id = auditorias['auditorias'][auditoria_index]['id']
+        
+        ver_auditoria(auditoria_index + 1, auditoria_id)
 
 
-def ver_auditoria(auditoria_id):
+def ver_auditoria(index, auditoria_id):
     data = {
         "comando": 'get_auditoria',
         'auditoria_id': auditoria_id
@@ -201,19 +206,18 @@ def ver_auditoria(auditoria_id):
     response = json.loads(response)
 
     os.system('cls')
-    print(Colores.HEADER + "Auditoria" + Colores.ENDC)
+    print(Colores.HEADER + f"Auditoria {index}" + Colores.ENDC)
 
-    print(f"""{"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
-{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
-{"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
-{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
-{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
+    print(f"""{"%-20s" % 'Fecha'}: {response['auditoria']['auditoria']['marca_temporal']}
+{"%-20s" % 'Bus'}: {response['auditoria']['auditoria']['n_interno']}
+{"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria']['tipo']}
+{"%-20s" % 'Auditor'}: {response['auditoria']['auditoria']['auditor']}
 """)
     
-    print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
+    print(Colores.HEADER + response['auditoria']['auditoria']['formulario'] + Colores.ENDC)
     
     for respuesta in response['auditoria']['respuestas']:
-        print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
+        print(f"{respuesta['titulo']:<20}: {respuesta['valor']:<40}")
 
     comando = input(Colores.OKCYAN + ".eliminar, .modificar o Enter > " + Colores.ENDC)
 
@@ -221,7 +225,7 @@ def ver_auditoria(auditoria_id):
         eliminar_auditoria(auditoria_id)
 
     if comando == ".modificar":
-        eliminar_auditoria(auditoria_id)
+        editar_auditoria(auditoria_id)
 
 
 def editar_auditoria(auditoria_id):
@@ -251,14 +255,14 @@ def ver_resumen():
     auditorias = json.loads(response)
 
     date_format = '%Y-%m-%d %H:%M:%S'
-    auditorias_24h = [auditoria for auditoria in auditorias['auditorias'] if datetime.datetime.now() - datetime.datetime.strptime(auditoria[2], date_format) <= datetime.timedelta(hours=24)]
+    auditorias_24h = [auditoria for auditoria in auditorias['auditorias'] if datetime.datetime.now() - datetime.datetime.strptime(auditoria['marca_temporal'], date_format) <= datetime.timedelta(hours=24)]
 
     print(Colores.HEADER + "Numero de auditorias: " + Colores.ENDC + str(len(auditorias)))
 
     print(Colores.HEADER + "Numero de auditorias en las ultimas 24 horas: "  + Colores.ENDC + str(len(auditorias_24h)))
     print(Colores.HEADER + "Buses auditados en las ultimas 24 horas: "  + Colores.ENDC)
     for auditoria in auditorias_24h:
-        print(" - " + auditoria[4])
+        print(" - " + auditoria['bus'])
 
     input(Colores.OKCYAN + "Presione enter para continuar... > " + Colores.ENDC)
 
@@ -294,7 +298,7 @@ def generar_reporte():
 
         data = {
             'comando': 'generar_reporte',
-            'id_form': forms[form_index]
+            'id_form': forms[form_index]['id']
         }
 
         response = request('127.0.0.1', 5000, 'GenerateReportService.py', json.dumps(data))
@@ -317,11 +321,11 @@ if __name__ == '__main__':
     locked_in = False
 
     comandos = [
+        ("Listar auditorias", lambda x: ver_auditorias()),
+        ("Crear formulario", lambda x: crear_formularios()),
         ("Listar usuarios", lambda x: listar_usuarios()),
         ("Agregar usuario", lambda x: agregar_usuario()),
         ("Agregar grupo", lambda x: agregar_grupo()),
-        ("Crear formularios", lambda x: crear_formularios()),
-        ("Listar auditorias", lambda x: ver_auditorias()),
         ("Ver resumen", lambda x: ver_resumen()),
         ("Generar Reporte", lambda x: generar_reporte()),
         ("Logout", lambda x: logout()),

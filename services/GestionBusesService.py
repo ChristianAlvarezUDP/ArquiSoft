@@ -5,12 +5,32 @@ import sqlite3
 import json
 from datetime import datetime
 
+
+def dict_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {key: value for key, value in zip(fields, row)}
+
+
+def get_all_buses():
+    try:
+        conn = sqlite3.connect('sqlite/arqui.db')
+        conn.row_factory = dict_factory
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM bus WHERE id = ?", (id,))
+        bus = cursor.fetchone()
+        conn.close()
+        return bus
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
+
+
 def GetBus(id):
     try:
         conn = sqlite3.connect('sqlite/arqui.db')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM buses WHERE id = ?", (id,))
+        cursor.execute("SELECT * FROM bus WHERE id = ?", (id,))
         bus = cursor.fetchone()
         conn.close()
         return bus
@@ -22,7 +42,7 @@ def createBus(id, patente, anio, chasis, plazas):
         conn = sqlite3.connect('sqlite/arqui.db')
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO buses (id, patente, anio, chasis, plazas) VALUES (?, ?, ?, ?, ?)", (id, patente, anio, chasis, plazas))
+        cursor.execute("INSERT INTO bu (id, patente, anio, chasis, plazas) VALUES (?, ?, ?, ?, ?)", (id, patente, anio, chasis, plazas))
         conn.commit()
         conn.close()
         return "Bus creado correctamente"
@@ -35,7 +55,7 @@ def updateBus(id, patente, anio, chasis, plazas):
         conn = sqlite3.connect('sqlite/arqui.db')
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE buses SET patente = ?, anio = ?, chasis = ?, plazas = ? WHERE id = ?", (patente, anio, chasis, plazas, id))
+        cursor.execute("UPDATE bus SET patente = ?, anio = ?, chasis = ?, plazas = ? WHERE id = ?", (patente, anio, chasis, plazas, id))
         conn.commit()
         conn.close()
         return "Bus actualizado correctamente"
@@ -86,8 +106,6 @@ def listarBusesAuditados():
     return json.dumps(buses_list)
     
 
-
-
 def service_worker(service_name, host, port):
     print(f"{service_name} starting on {host}:{port}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -101,6 +119,8 @@ def service_worker(service_name, host, port):
             data = json.loads(data)
             response = ""
             
+            if data["comando"] == 'get_all_buses':
+                response = GetBus(data["id"])
             if data["comando"] == "GetBus":
                 response = GetBus(data["id"])
             elif data["comando"] == "createBus":

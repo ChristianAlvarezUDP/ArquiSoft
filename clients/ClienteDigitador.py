@@ -57,20 +57,28 @@ def eliminar_auditoria(auditoria_id):
     response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
 
 
+def ver_buses():
+    while True:
+        data = {
+            "comando": 'get_all_auditorias'
+        }
+
+        
+
+
 def ver_auditorias():
     while True:
         data = {
             "comando": 'get_all_auditorias'
         }
 
-        os.system('cls')
-        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
         response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
         auditorias = json.loads(response)
 
-        
+        os.system('cls')
+        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
         for i, auditoria in enumerate(auditorias['auditorias']):
-            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
+            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['marca_temporal']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
 
         comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
 
@@ -174,12 +182,23 @@ def answerCampos(id_grupo_campos):
 
 #Funciones de la interfaz
 def registerAuditoria():
-    grupoCampos = retrieveGruposCampos()
-    print(Colores.HEADER + f"Seleccione Formulario: " + Colores.ENDC)
-    for i, grupoCampo in enumerate(grupoCampos):
-        print(f"{i + 1}.-  {grupoCampo["nombre"]}")
+    while True:
+        os.system('cls')
+        grupoCampos = retrieveGruposCampos()
+        print(Colores.HEADER + f"Seleccione Formulario: " + Colores.ENDC)
+        for i, grupoCampo in enumerate(grupoCampos):
+            print(f"{i + 1}.-  {grupoCampo["nombre"]}")
 
-    formulario_index = input_int(" > ") - 1
+        comando = input(Colores.OKCYAN + " [ID] Formulario o .salir > " + Colores.ENDC)
+
+        if comando == '.salir':
+            return
+        
+        try:
+            formulario_index = int(comando) - 1
+            break
+        except ValueError:
+            continue
 
     id_grupo_campos = grupoCampos[formulario_index]["id"]
     marca_temporal = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -278,69 +297,6 @@ def editAuditoria(datos):
             return "break"
         else:
             print("Opción no válida")
-
-def ver_auditorias():
-    while True:
-        data = {
-            "comando": 'get_all_auditorias'
-        }
-
-        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-
-        auditorias = json.loads(response)
-
-        os.system('cls')
-        print(Colores.HEADER + "Num   | " + "%-15s" % "Formulario" + " | " + "%-20s" % "Fecha" + " | " + "%-7s" % "Bus" + " | " + "%-15s" % "Tipo Auditoria" + " | " + "%-20s" % "Auditor" + Colores.ENDC)
-        
-        for i, auditoria in enumerate(auditorias['auditorias']):
-            print(f"{i + 1:<5} | {auditoria['formulario']:<15} | {auditoria['fecha']:<20} | {auditoria['bus']:<7} | {auditoria['tipo']:<15} | {auditoria['auditor']:<20}")
-
-        comando = input(Colores.OKCYAN + "Ver auditoria [ID] o .salir > " + Colores.ENDC)
-
-        if comando == ".salir":
-            return
-        
-        if not comando.isdigit():
-            print("ID no valido")
-            return
-        
-        if int(comando) > len(auditorias['auditorias']) or int(comando) < 1:
-            print("ID no valido")
-            return 
-           
-        auditoria_id = auditorias['auditorias'][int(comando) - 1]['id']
-        
-        data = {
-            "comando": 'get_auditoria',
-            'auditoria_id': auditoria_id
-        }
-        
-        response = request('127.0.0.1', 5000, 'AuditoriaService.py', json.dumps(data))
-        response = json.loads(response)
-        os.system('cls')
-        print(response)
-        print(Colores.HEADER + "Auditoria" + Colores.ENDC)
-
-        print(f"""
-            {"%-20s" % 'Marca Temporal'}: {response['auditoria']['auditoria'][1]}
-            {"%-20s" % 'Fecha'}: {response['auditoria']['auditoria'][2]}
-            {"%-20s" % 'Bus'}: {response['auditoria']['auditoria'][4]}
-            {"%-20s" % 'Tipo Auditoria'}: {response['auditoria']['auditoria'][5]}
-            {"%-20s" % 'Auditor'}: {response['auditoria']['auditoria'][6]}
-        """)
-        
-        print(Colores.HEADER + response['auditoria']['auditoria'][3] + Colores.ENDC)
-        
-        for respuesta in response['auditoria']['respuestas']:
-            print(f"{respuesta[0]:<20}: {respuesta[1]:<40}")
-
-        comando = input(Colores.OKCYAN + ".eliminar, .modificar o Enter > " + Colores.ENDC)
-
-        if comando == ".eliminar":
-            eliminar_auditoria(auditoria_id)
-
-        if comando == ".modificar":
-            editAuditoria(response)
 
 if __name__ == '__main__':
     locked_in = True
